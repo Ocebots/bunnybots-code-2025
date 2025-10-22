@@ -1,4 +1,3 @@
 package frc.robot.subsystems;
 
-public class Pivot {
-}
+public class Pivot {}
