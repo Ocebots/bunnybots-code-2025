@@ -1,4 +1,3 @@
 package frc.robot.config;
 
-public class ShooterConfig {
-}
+public class ShooterConfig {}
