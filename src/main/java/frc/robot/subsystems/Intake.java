@@ -6,6 +6,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.config.CANMappings;
+import frc.robot.config.IntakeConfig;
 
 public class Intake {
   protected TalonFX mInitialIntake;
@@ -22,22 +23,46 @@ public class Intake {
     TalonFXConfiguration initialIntakeConfig = new TalonFXConfiguration();
     TalonFXConfiguration kickerIntakeConfig = new TalonFXConfiguration();
 
-    initialIntakeConfig.Slot0.kP = 0.0;
-    initialIntakeConfig.Slot0.kI = 0.0;
-    initialIntakeConfig.Slot0.kD = 0.0;
-    initialIntakeConfig.Slot0.kS = 0.0;
-    initialIntakeConfig.Slot0.kV = 0.0;
-    initialIntakeConfig.Slot0.kA = 0.0;
+    initialIntakeConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+    initialIntakeConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+    initialIntakeConfig.CurrentLimits.StatorCurrentLimit =
+        IntakeConfig.K_INITIAL_AND_KICKER_SHOOTER_STATOR_CURRENT_LIMIT;
+    initialIntakeConfig.CurrentLimits.SupplyCurrentLimit =
+        IntakeConfig.K_INITIAL_AND_KICKER_SHOOTER_SUPPLY_CURRENT_LIMIT;
 
-    kickerIntakeConfig.Slot0.kP = 0.0;
-    kickerIntakeConfig.Slot0.kI = 0.0;
-    kickerIntakeConfig.Slot0.kD = 0.0;
-    kickerIntakeConfig.Slot0.kS = 0.0;
-    kickerIntakeConfig.Slot0.kV = 0.0;
-    kickerIntakeConfig.Slot0.kA = 0.0;
+    kickerIntakeConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+    kickerIntakeConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+    kickerIntakeConfig.CurrentLimits.StatorCurrentLimit =
+        IntakeConfig.K_INITIAL_AND_KICKER_SHOOTER_STATOR_CURRENT_LIMIT;
+    kickerIntakeConfig.CurrentLimits.SupplyCurrentLimit =
+        IntakeConfig.K_INITIAL_AND_KICKER_SHOOTER_SUPPLY_CURRENT_LIMIT;
 
-    initialIntakeConfig.Feedback.SensorToMechanismRatio = 25; // gear ratio
-    kickerIntakeConfig.Feedback.SensorToMechanismRatio = 25;
+    initialIntakeConfig.MotionMagic.MotionMagicCruiseVelocity =
+        IntakeConfig.K_INITIAL_AND_KICKER_INTAKE_MAX_CRUISE_VELOCITY;
+    initialIntakeConfig.MotionMagic.MotionMagicCruiseVelocity =
+        IntakeConfig.K_INITIAL_AND_KICKER_INTAKE_MAX_CRUISE_VELOCITY;
+    kickerIntakeConfig.MotionMagic.MotionMagicAcceleration =
+        IntakeConfig.K_INITIAL_AND_KICKER_INTAKE_TARGET_ACCELERATION;
+    kickerIntakeConfig.MotionMagic.MotionMagicAcceleration =
+        IntakeConfig.K_INITIAL_AND_KICKER_INTAKE_TARGET_ACCELERATION;
+
+    initialIntakeConfig.Slot0.kP = IntakeConfig.K_INITIAL_INTAKE_P;
+    initialIntakeConfig.Slot0.kI = IntakeConfig.K_INITIAL_INTAKE_I;
+    initialIntakeConfig.Slot0.kD = IntakeConfig.K_INITIAL_INTAKE_D;
+    initialIntakeConfig.Slot0.kS = IntakeConfig.K_INITIAL_INTAKE_S;
+    initialIntakeConfig.Slot0.kV = IntakeConfig.K_INITIAL_INTAKE_V;
+    initialIntakeConfig.Slot0.kA = IntakeConfig.K_INITIAL_INTAKE_A;
+
+    kickerIntakeConfig.Slot0.kP = IntakeConfig.K_KICKER_INTAKE_P;
+    kickerIntakeConfig.Slot0.kI = IntakeConfig.K_KICKER_INTAKE_I;
+    kickerIntakeConfig.Slot0.kD = IntakeConfig.K_KICKER_INTAKE_D;
+    kickerIntakeConfig.Slot0.kS = IntakeConfig.K_KICKER_INTAKE_S;
+    kickerIntakeConfig.Slot0.kV = IntakeConfig.K_KICKER_INTAKE_V;
+    kickerIntakeConfig.Slot0.kA = IntakeConfig.K_KICKER_INTAKE_A;
+
+    initialIntakeConfig.Feedback.SensorToMechanismRatio =
+        IntakeConfig.K_INITIAL_INTAKE_GEAR_RATIO; // gear ratio
+    kickerIntakeConfig.Feedback.SensorToMechanismRatio = IntakeConfig.K_KICKER_INTAKE_GEAR_RATIO;
 
     initialIntakeConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     kickerIntakeConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;

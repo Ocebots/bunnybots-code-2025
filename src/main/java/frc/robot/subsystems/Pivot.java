@@ -25,29 +25,51 @@ public class Pivot {
     TalonFXConfiguration leftPivotConfig = new TalonFXConfiguration();
     TalonFXConfiguration rightPivotConfig = new TalonFXConfiguration();
 
-    leftPivotConfig.MotionMagic.MotionMagicCruiseVelocity = 3000;
-    rightPivotConfig.MotionMagic.MotionMagicCruiseVelocity = 3000;
-    leftPivotConfig.MotionMagic.MotionMagicAcceleration = 500;
-    rightPivotConfig.MotionMagic.MotionMagicAcceleration = 500;
+    leftPivotConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+    leftPivotConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+    leftPivotConfig.CurrentLimits.StatorCurrentLimit =
+        PivotConfig.K_LEFT_AND_RIGHT_PIVOT_STATOR_CURRENT_LIMIT;
+    leftPivotConfig.CurrentLimits.SupplyCurrentLimit =
+        PivotConfig.K_LEFT_AND_RIGHT_PIVOT_SUPPLY_CURRENT_LIMIT;
+    ;
 
-    leftPivotConfig.Slot0.kP = 0.0;
-    leftPivotConfig.Slot0.kI = 0.0;
-    leftPivotConfig.Slot0.kD = 0.0;
-    leftPivotConfig.Slot0.kS = 0.0;
-    leftPivotConfig.Slot0.kG = 0.0;
-    leftPivotConfig.Slot0.kV = 0.0;
-    leftPivotConfig.Slot0.kA = 0.0;
+    rightPivotConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+    rightPivotConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+    rightPivotConfig.CurrentLimits.StatorCurrentLimit =
+        PivotConfig.K_LEFT_AND_RIGHT_PIVOT_STATOR_CURRENT_LIMIT;
+    ;
+    rightPivotConfig.CurrentLimits.SupplyCurrentLimit =
+        PivotConfig.K_LEFT_AND_RIGHT_PIVOT_SUPPLY_CURRENT_LIMIT;
+    ;
 
-    rightPivotConfig.Slot0.kP = 0.0;
-    rightPivotConfig.Slot0.kI = 0.0;
-    rightPivotConfig.Slot0.kD = 0.0;
-    rightPivotConfig.Slot0.kS = 0.0;
-    rightPivotConfig.Slot0.kG = 0.0;
-    rightPivotConfig.Slot0.kV = 0.0;
-    rightPivotConfig.Slot0.kA = 0.0;
+    leftPivotConfig.MotionMagic.MotionMagicCruiseVelocity =
+        PivotConfig.K_LEFT_AND_RIGHT_PIVOT_MAX_CRUISE_VELOCITY;
+    rightPivotConfig.MotionMagic.MotionMagicCruiseVelocity =
+        PivotConfig.K_LEFT_AND_RIGHT_PIVOT_MAX_CRUISE_VELOCITY;
+    leftPivotConfig.MotionMagic.MotionMagicAcceleration =
+        PivotConfig.K_LEFT_AND_RIGHT_PIVOT_TARGET_ACCELERATION;
+    rightPivotConfig.MotionMagic.MotionMagicAcceleration =
+        PivotConfig.K_LEFT_AND_RIGHT_PIVOT_TARGET_ACCELERATION;
 
-    leftPivotConfig.Feedback.SensorToMechanismRatio = 25; // gear ratio
-    rightPivotConfig.Feedback.SensorToMechanismRatio = 25;
+    leftPivotConfig.Slot0.kP = PivotConfig.K_LEFT_AND_RIGHT_PIVOT_P;
+    leftPivotConfig.Slot0.kI = PivotConfig.K_LEFT_AND_RIGHT_PIVOT_I;
+    leftPivotConfig.Slot0.kD = PivotConfig.K_LEFT_AND_RIGHT_PIVOT_D;
+    leftPivotConfig.Slot0.kS = PivotConfig.K_LEFT_AND_RIGHT_PIVOT_S;
+    leftPivotConfig.Slot0.kG = PivotConfig.K_LEFT_AND_RIGHT_PIVOT_G;
+    leftPivotConfig.Slot0.kV = PivotConfig.K_LEFT_AND_RIGHT_PIVOT_V;
+    leftPivotConfig.Slot0.kA = PivotConfig.K_LEFT_AND_RIGHT_PIVOT_A;
+
+    rightPivotConfig.Slot0.kP = PivotConfig.K_LEFT_AND_RIGHT_PIVOT_P;
+    rightPivotConfig.Slot0.kI = PivotConfig.K_LEFT_AND_RIGHT_PIVOT_I;
+    rightPivotConfig.Slot0.kD = PivotConfig.K_LEFT_AND_RIGHT_PIVOT_D;
+    rightPivotConfig.Slot0.kS = PivotConfig.K_LEFT_AND_RIGHT_PIVOT_S;
+    rightPivotConfig.Slot0.kG = PivotConfig.K_LEFT_AND_RIGHT_PIVOT_G;
+    rightPivotConfig.Slot0.kV = PivotConfig.K_LEFT_AND_RIGHT_PIVOT_V;
+    rightPivotConfig.Slot0.kA = PivotConfig.K_LEFT_AND_RIGHT_PIVOT_A;
+
+    leftPivotConfig.Feedback.SensorToMechanismRatio =
+        PivotConfig.K_LEFT_PIVOT_GEAR_RATIO; // gear ratio
+    rightPivotConfig.Feedback.SensorToMechanismRatio = PivotConfig.K_RIGHT_PIVOT_GEAR_RATIO;
 
     leftPivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     rightPivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
@@ -64,6 +86,17 @@ public class Pivot {
 
     mPivotLeft.setControl(new MotionMagicVoltage(angleSetpoint.getRotations()));
     mPivotRight.setControl(follower);
+  }
+
+  // placeholders, incomplete
+  public Rotation2d getHighShootAngle() {
+    // add calculations
+    return Rotation2d.fromDegrees(0);
+  }
+
+  public Rotation2d getLowShootAngle() {
+    // add calculations
+    return Rotation2d.fromDegrees(0);
   }
 
   public boolean pivotAtSetpoint() {
