@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
+// we'll do nothing in this file too?
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
@@ -19,17 +20,24 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotPeriodic() {
+    // loop continuously runs as long as the robot is active
     CommandScheduler.getInstance().run();
   }
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+    // runs once robot is disabled
+  }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+    // robot is disabled but still running
+  }
 
   @Override
-  public void disabledExit() {}
+  public void disabledExit() {
+    // likely will never be used
+  }
 
   @Override
   public void autonomousInit() {
@@ -41,7 +49,9 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+    // nope screw that that's this one
+  }
 
   @Override
   public void autonomousExit() {}

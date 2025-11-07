@@ -14,6 +14,6 @@ public class ShooterConfig {
   public static final double K_TOP_AND_BOTTOM_SHOOTER_V = 0.0;
   public static final double K_TOP_AND_BOTTOM_SHOOTER_A = 0.0;
 
-  public static final double K_TOP_SHOOTER_GEAR_RATIO = 0.0;
-  public static final double K_BOTTOM_SHOOTER_GEAR_RATIO = 0.0;
+  public static final double K_TOP_SHOOTER_GEAR_RATIO = 1.0;
+  public static final double K_BOTTOM_SHOOTER_GEAR_RATIO = 1.0;
 }
