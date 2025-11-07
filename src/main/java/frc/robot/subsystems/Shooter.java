@@ -63,12 +63,12 @@ public class Shooter {
   }
 
   public void shoot(double velocity) {
-      mTopShooterMotor.setControl(new VelocityVoltage(velocity));
-      mBottomShooterMotor.setControl(new VelocityVoltage(velocity));
+    mTopShooterMotor.setControl(new VelocityVoltage(velocity));
+    mBottomShooterMotor.setControl(new VelocityVoltage(velocity));
   }
 
   public void stop() {
-      mTopShooterMotor.stopMotor();
-      mBottomShooterMotor.stopMotor();
+    mTopShooterMotor.stopMotor();
+    mBottomShooterMotor.stopMotor();
   }
 }
