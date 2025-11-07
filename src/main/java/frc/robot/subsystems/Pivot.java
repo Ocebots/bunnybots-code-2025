@@ -7,16 +7,16 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.config.CANMappings;
 import frc.robot.config.PivotConfig;
 
-public class Pivot {
+public class Pivot extends SubsystemBase {
   protected TalonFX mPivotLeft;
   protected TalonFX mPivotRight;
   protected Follower follower;
 
-  private double setpoint;
-  private double currentAngleDegrees;
+  private double currentAngle;
 
   public Pivot() {
     mPivotLeft = new TalonFX(CANMappings.K_PIVOT_LEFT_ID);
@@ -71,8 +71,8 @@ public class Pivot {
         PivotConfig.K_LEFT_PIVOT_GEAR_RATIO; // gear ratio
     rightPivotConfig.Feedback.SensorToMechanismRatio = PivotConfig.K_RIGHT_PIVOT_GEAR_RATIO;
 
-    leftPivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-    rightPivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    leftPivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    rightPivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
     mPivotLeft.getConfigurator().apply(leftPivotConfig);
     mPivotRight.getConfigurator().apply(rightPivotConfig);
@@ -80,10 +80,7 @@ public class Pivot {
     follower = new Follower(CANMappings.K_PIVOT_LEFT_ID, true);
   }
 
-  // angleSetpoint in rotations
   public void setPivotAngle(Rotation2d angleSetpoint) {
-    setpoint = angleSetpoint.getRotations();
-
     mPivotLeft.setControl(new MotionMagicVoltage(angleSetpoint.getRotations()));
     mPivotRight.setControl(follower);
   }
@@ -100,17 +97,20 @@ public class Pivot {
   }
 
   public boolean pivotAtSetpoint() {
-    return Math.abs((getPivotAngleRotations() - setpoint)) <= PivotConfig.K_PIVOT_ANGLE_TOLERANCE;
+    return Math.abs(mPivotLeft.getClosedLoopError().getValueAsDouble())
+        <= PivotConfig.K_PIVOT_ANGLE_TOLERANCE;
   }
 
   public double getPivotAngleDegrees() {
-    currentAngleDegrees = mPivotLeft.getPosition().getValueAsDouble() * 360;
-    return currentAngleDegrees;
+    currentAngle = mPivotLeft.getPosition().getValueAsDouble();
+    currentAngle = currentAngle % 1 * 360;
+
+    return currentAngle;
   }
 
-  public double getPivotAngleRotations() {
-    currentAngleDegrees = mPivotLeft.getPosition().getValueAsDouble();
-    return currentAngleDegrees;
+  public double getPivotAngleTotalRotations() {
+    currentAngle = mPivotLeft.getPosition().getValueAsDouble();
+    return currentAngle;
   }
 
   public void zeroPivot() {
@@ -126,12 +126,12 @@ public class Pivot {
   // @Override
   public void periodic() {
     SmartDashboard.putBoolean("Pivot At Setpoint", pivotAtSetpoint());
-    SmartDashboard.putNumber("Pivot Actual Angle", getPivotAngleDegrees());
-    SmartDashboard.putNumber("Pivot Goal Angle", setpoint);
+    SmartDashboard.putNumber("Pivot Actual Angle Degrees", getPivotAngleDegrees());
+    SmartDashboard.putNumber(
+        "Pivot Goal Rotations", mPivotLeft.getClosedLoopReference().getValueAsDouble());
+    SmartDashboard.putNumber(
+        "Pivot Goal Angle Degrees",
+        mPivotLeft.getClosedLoopReference().getValueAsDouble() % 1 * 360);
     SmartDashboard.putNumber("Pivot Error", mPivotLeft.getClosedLoopError().getValueAsDouble());
-    SmartDashboard.putNumber(
-        "Left Pivot Motor Output %", mPivotLeft.getMotorOutputStatus().getValueAsDouble());
-    SmartDashboard.putNumber(
-        "Right Pivot Motor Output %", mPivotRight.getMotorOutputStatus().getValueAsDouble());
   }
 }

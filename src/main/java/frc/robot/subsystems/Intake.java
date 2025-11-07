@@ -5,16 +5,13 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.config.CANMappings;
 import frc.robot.config.IntakeConfig;
 
-public class Intake {
+public class Intake extends SubsystemBase {
   protected TalonFX mInitialIntake;
   protected TalonFX mKickerIntake;
-
-  private double tolerance;
-  private double setpointInitialIntake;
-  private double setpointKickerIntake;
 
   public Intake() {
     mInitialIntake = new TalonFX(CANMappings.K_INITIAL_INTAKE_ID);
@@ -26,25 +23,16 @@ public class Intake {
     initialIntakeConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
     initialIntakeConfig.CurrentLimits.StatorCurrentLimitEnable = true;
     initialIntakeConfig.CurrentLimits.StatorCurrentLimit =
-        IntakeConfig.K_INITIAL_AND_KICKER_SHOOTER_STATOR_CURRENT_LIMIT;
+        IntakeConfig.K_INITIAL_INTAKE_STATOR_CURRENT_LIMIT;
     initialIntakeConfig.CurrentLimits.SupplyCurrentLimit =
-        IntakeConfig.K_INITIAL_AND_KICKER_SHOOTER_SUPPLY_CURRENT_LIMIT;
+        IntakeConfig.K_INITIAL_INTAKE_SUPPLY_CURRENT_LIMIT;
 
     kickerIntakeConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
     kickerIntakeConfig.CurrentLimits.StatorCurrentLimitEnable = true;
     kickerIntakeConfig.CurrentLimits.StatorCurrentLimit =
-        IntakeConfig.K_INITIAL_AND_KICKER_SHOOTER_STATOR_CURRENT_LIMIT;
+        IntakeConfig.K_KICKER_INTAKE_STATOR_CURRENT_LIMIT;
     kickerIntakeConfig.CurrentLimits.SupplyCurrentLimit =
-        IntakeConfig.K_INITIAL_AND_KICKER_SHOOTER_SUPPLY_CURRENT_LIMIT;
-
-    initialIntakeConfig.MotionMagic.MotionMagicCruiseVelocity =
-        IntakeConfig.K_INITIAL_AND_KICKER_INTAKE_MAX_CRUISE_VELOCITY;
-    initialIntakeConfig.MotionMagic.MotionMagicCruiseVelocity =
-        IntakeConfig.K_INITIAL_AND_KICKER_INTAKE_MAX_CRUISE_VELOCITY;
-    kickerIntakeConfig.MotionMagic.MotionMagicAcceleration =
-        IntakeConfig.K_INITIAL_AND_KICKER_INTAKE_TARGET_ACCELERATION;
-    kickerIntakeConfig.MotionMagic.MotionMagicAcceleration =
-        IntakeConfig.K_INITIAL_AND_KICKER_INTAKE_TARGET_ACCELERATION;
+        IntakeConfig.K_KICKER_INTAKE_SUPPLY_CURRENT_LIMIT;
 
     initialIntakeConfig.Slot0.kP = IntakeConfig.K_INITIAL_INTAKE_P;
     initialIntakeConfig.Slot0.kI = IntakeConfig.K_INITIAL_INTAKE_I;
@@ -73,29 +61,27 @@ public class Intake {
 
   // Velocity is rotations per second of motor accounting for SensorToMechanismRatio
   public void intake(double velocity) {
-    setpointInitialIntake = velocity;
-    setpointKickerIntake = velocity;
-    tolerance = velocity / 10;
     mInitialIntake.setControl(new VelocityVoltage(velocity));
     mKickerIntake.setControl(new VelocityVoltage(velocity));
   }
 
   public void stopIntake() {
-    tolerance = 0;
-    setpointInitialIntake = 0;
-    setpointKickerIntake = 0;
     mInitialIntake.stopMotor();
     mKickerIntake.stopMotor();
   }
 
+  public void stopKicker() {
+    mKickerIntake.stopMotor();
+  }
+
   public void runKicker(double velocity) {
-    setpointKickerIntake = velocity;
     mKickerIntake.setControl(new VelocityVoltage(velocity));
   }
 
+  // 0.5 is used to cut out possible noise
   public boolean intakeActive() {
-    return Math.abs(mInitialIntake.getVelocity().getValueAsDouble()) > 0
-        || Math.abs(mKickerIntake.getVelocity().getValueAsDouble()) > 0;
+    return Math.abs(mInitialIntake.getVelocity().getValueAsDouble()) > 0.5
+        || Math.abs(mKickerIntake.getVelocity().getValueAsDouble()) > 0.5;
   }
 
   public double actualInitialIntakeMotorSpeedRPS() {
@@ -106,37 +92,28 @@ public class Intake {
     return mKickerIntake.getVelocity().getValueAsDouble();
   }
 
-  public double goalIntakeSpeedRPS() {
+  public double goalPIDInitialIntakeSpeedRPS() {
     return mInitialIntake.getClosedLoopReference().getValueAsDouble();
   }
 
-  public boolean initialIntakeMotorAtGoalSpeed() {
-    return Math.abs(actualInitialIntakeMotorSpeedRPS() - setpointInitialIntake) <= tolerance;
-  }
-
-  public boolean kickerIntakeMotorAtGoalSpeed() {
-    return Math.abs(actualKickerIntakeMotorSpeedRPS() - setpointKickerIntake) <= tolerance;
+  public double goalPIDKickerIntakeSpeedRPS() {
+    return mKickerIntake.getClosedLoopReference().getValueAsDouble();
   }
 
   // @Override
   public void periodic() {
     SmartDashboard.putBoolean("Intake Active", intakeActive());
     SmartDashboard.putNumber(
-        "Initial Intake Motor Actual Speed (Rotations/Second)", actualInitialIntakeMotorSpeedRPS());
+        "Initial Intake Motor Speed (Rotations/Second)", actualInitialIntakeMotorSpeedRPS());
     SmartDashboard.putNumber(
-        "Kicker Intake Motor Actual Speed (Rotations/Second)", actualKickerIntakeMotorSpeedRPS());
-    SmartDashboard.putNumber("Intake Goal Speed (Rotations/Second)", goalIntakeSpeedRPS());
-    SmartDashboard.putBoolean(
-        "Initial Intake Motor Is At Goal Speed", initialIntakeMotorAtGoalSpeed());
-    SmartDashboard.putBoolean(
-        "Kicker Intake Motor Is At Goal Speed", kickerIntakeMotorAtGoalSpeed());
+        "Kicker Intake Motor Speed (Rotations/Second)", actualKickerIntakeMotorSpeedRPS());
+    SmartDashboard.putNumber(
+        "Initial Intake Motor Goal Speed (Rotations/Second)", goalPIDInitialIntakeSpeedRPS());
+    SmartDashboard.putNumber(
+        "Initial Kicker Motor Goal Speed (Rotations/Second)", goalPIDKickerIntakeSpeedRPS());
     SmartDashboard.putNumber(
         "Initial Intake Motor Speed Error", mInitialIntake.getClosedLoopError().getValueAsDouble());
     SmartDashboard.putNumber(
         "Kicker Intake Motor Speed Error", mKickerIntake.getClosedLoopError().getValueAsDouble());
-    SmartDashboard.putNumber(
-        "Initial Intake Motor Output %", mInitialIntake.getMotorOutputStatus().getValueAsDouble());
-    SmartDashboard.putNumber(
-        "Kicker Intake Motor Output %", mKickerIntake.getMotorOutputStatus().getValueAsDouble());
   }
 }

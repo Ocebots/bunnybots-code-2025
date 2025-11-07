@@ -1,21 +1,17 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.config.CANMappings;
 import frc.robot.config.ShooterConfig;
 
-public class Shooter {
+public class Shooter extends SubsystemBase {
   protected TalonFX mTopShooter;
   protected TalonFX mBottomShooter;
-  protected Follower follower;
-
-  private double tolerance;
-  private double setpoint;
 
   public Shooter() {
     mTopShooter = new TalonFX(CANMappings.K_TOP_SHOOTER_ID);
@@ -34,7 +30,7 @@ public class Shooter {
     bottomShooterConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
     bottomShooterConfig.CurrentLimits.StatorCurrentLimitEnable = true;
     bottomShooterConfig.CurrentLimits.StatorCurrentLimit =
-        ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_SUPPLY_CURRENT_LIMIT;
+        ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_STATOR_CURRENT_LIMIT;
     bottomShooterConfig.CurrentLimits.SupplyCurrentLimit =
         ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_SUPPLY_CURRENT_LIMIT;
 
@@ -52,15 +48,6 @@ public class Shooter {
     bottomShooterConfig.Slot0.kV = ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_V;
     bottomShooterConfig.Slot0.kA = ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_A;
 
-    topShooterConfig.MotionMagic.MotionMagicCruiseVelocity =
-        ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_MAX_CRUISE_VELOCITY;
-    topShooterConfig.MotionMagic.MotionMagicCruiseVelocity =
-        ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_MAX_CRUISE_VELOCITY;
-    bottomShooterConfig.MotionMagic.MotionMagicAcceleration =
-        ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_TARGET_ACCELERATION;
-    bottomShooterConfig.MotionMagic.MotionMagicAcceleration =
-        ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_TARGET_ACCELERATION;
-
     topShooterConfig.Feedback.SensorToMechanismRatio =
         ShooterConfig.K_TOP_SHOOTER_GEAR_RATIO; // gear ratio (wheel rps)
     bottomShooterConfig.Feedback.SensorToMechanismRatio = ShooterConfig.K_BOTTOM_SHOOTER_GEAR_RATIO;
@@ -70,28 +57,23 @@ public class Shooter {
 
     mTopShooter.getConfigurator().apply(topShooterConfig);
     mBottomShooter.getConfigurator().apply(bottomShooterConfig);
-
-    follower = new Follower(CANMappings.K_TOP_SHOOTER_ID, false);
   }
 
   // Velocity is rotations per second of motor accounting for SensorToMechanismRatio
   public void shoot(double velocity) {
-    setpoint = velocity;
-    tolerance = Math.max(1.0, velocity * 0.02);
     mTopShooter.setControl(new VelocityVoltage(velocity));
-    mBottomShooter.setControl(follower);
+    mBottomShooter.setControl(new VelocityVoltage(velocity));
   }
 
   public void stopShooter() {
-    tolerance = 0;
-    setpoint = 0;
     mTopShooter.stopMotor();
     mBottomShooter.stopMotor();
   }
 
+  // 0.5 value accounts for noise
   public boolean shooterActive() {
-    return Math.abs(mTopShooter.getVelocity().getValueAsDouble()) > 0
-        || Math.abs(mBottomShooter.getVelocity().getValueAsDouble()) > 0;
+    return Math.abs(mTopShooter.getVelocity().getValueAsDouble()) > 0.5
+        || Math.abs(mBottomShooter.getVelocity().getValueAsDouble()) > 0.5;
   }
 
   public double actualTopShooterMotorSpeedRPS() {
@@ -102,20 +84,12 @@ public class Shooter {
     return mBottomShooter.getVelocity().getValueAsDouble();
   }
 
-  public double goalShootSpeedRPS() {
+  public double goalTopShootSpeedRPS() {
     return mTopShooter.getClosedLoopReference().getValueAsDouble();
   }
 
-  public boolean topShooterMotorAtGoalSpeed() {
-    return Math.abs(actualTopShooterMotorSpeedRPS() - setpoint) <= tolerance;
-  }
-
-  public boolean bottomShooterMotorAtGoalSpeed() {
-    return Math.abs(actualBottomShooterMotorSpeedRPS() - setpoint) <= tolerance;
-  }
-
-  public boolean shooterReady() {
-    return topShooterMotorAtGoalSpeed() && bottomShooterMotorAtGoalSpeed();
+  public double goalBottomShootSpeedRPS() {
+    return mBottomShooter.getClosedLoopReference().getValueAsDouble();
   }
 
   // @Override
@@ -125,18 +99,13 @@ public class Shooter {
         "Top Shooter Motor Actual Speed (Rotations/Second)", actualTopShooterMotorSpeedRPS());
     SmartDashboard.putNumber(
         "Bottom Shooter Motor Actual Speed (Rotations/Second)", actualBottomShooterMotorSpeedRPS());
-    SmartDashboard.putNumber("Shooter Goal Speed (Rotations/Second)", goalShootSpeedRPS());
-    SmartDashboard.putBoolean("Top Shooter Motor Is At Goal Speed", topShooterMotorAtGoalSpeed());
-    SmartDashboard.putBoolean(
-        "Bottom Shooter Motor Is At Goal Speed", bottomShooterMotorAtGoalSpeed());
+    SmartDashboard.putNumber(
+        "Top Shooter Wheel Goal Speed (Rotations/Second)", goalTopShootSpeedRPS());
+    SmartDashboard.putNumber(
+        "Bottom Shooter Wheel Goal Speed (Rotations/Second)", goalBottomShootSpeedRPS());
     SmartDashboard.putNumber(
         "Top Shooter Motor Speed Error", mTopShooter.getClosedLoopError().getValueAsDouble());
     SmartDashboard.putNumber(
         "Bottom Shooter Motor Speed Error", mBottomShooter.getClosedLoopError().getValueAsDouble());
-    SmartDashboard.putNumber(
-        "Top Shooter Motor Output %", mTopShooter.getMotorOutputStatus().getValueAsDouble());
-    SmartDashboard.putNumber(
-        "Bottom Shooter Motor Output %", mBottomShooter.getMotorOutputStatus().getValueAsDouble());
-    SmartDashboard.putBoolean("Shooter Ready", shooterReady());
   }
 }
