@@ -110,7 +110,7 @@ public class Intake extends SubsystemBase {
     SmartDashboard.putNumber(
         "Initial Intake Motor Goal Speed (Rotations/Second)", goalPIDInitialIntakeSpeedRPS());
     SmartDashboard.putNumber(
-        "Initial Kicker Motor Goal Speed (Rotations/Second)", goalPIDKickerIntakeSpeedRPS());
+        "Kicker Intake Motor Goal Speed (Rotations/Second)", goalPIDKickerIntakeSpeedRPS());
     SmartDashboard.putNumber(
         "Initial Intake Motor Speed Error", mInitialIntake.getClosedLoopError().getValueAsDouble());
     SmartDashboard.putNumber(
