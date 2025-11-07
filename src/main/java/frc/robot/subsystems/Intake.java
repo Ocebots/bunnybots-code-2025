@@ -4,10 +4,11 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.config.CANMappings;
 import frc.robot.config.IntakeConfig;
 
-public class Intake {
+public class Intake extends SubsystemBase {
   protected TalonFX mInitialIntake;
   protected TalonFX mKickerIntake;
 
@@ -19,25 +20,27 @@ public class Intake {
     TalonFXConfiguration kickerIntakeConfig = new TalonFXConfiguration();
 
     initialIntakeConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-    kickerIntakeConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-    initialIntakeConfig.CurrentLimits.SupplyCurrentLimit =
-        IntakeConfig.K_INTAKE_MOTORS_SUPPLY_CURRENT_LIMIT;
-    kickerIntakeConfig.CurrentLimits.SupplyCurrentLimit =
-        IntakeConfig.K_KICKER_MOTORS_SUPPLY_CURRENT_LIMIT;
     initialIntakeConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-    kickerIntakeConfig.CurrentLimits.StatorCurrentLimitEnable = true;
     initialIntakeConfig.CurrentLimits.StatorCurrentLimit =
-        IntakeConfig.K_INTAKE_MOTORS_STATOR_CURRENT_LIMIT;
+        IntakeConfig.K_INITIAL_INTAKE_STATOR_CURRENT_LIMIT;
+    initialIntakeConfig.CurrentLimits.SupplyCurrentLimit =
+        IntakeConfig.K_INITIAL_INTAKE_SUPPLY_CURRENT_LIMIT;
+
+    kickerIntakeConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+    kickerIntakeConfig.CurrentLimits.StatorCurrentLimitEnable = true;
     kickerIntakeConfig.CurrentLimits.StatorCurrentLimit =
-        IntakeConfig.K_KICKER_MOTORS_STATOR_CURRENT_LIMIT;
+        IntakeConfig.K_KICKER_INTAKE_STATOR_CURRENT_LIMIT;
+    kickerIntakeConfig.CurrentLimits.SupplyCurrentLimit =
+        IntakeConfig.K_KICKER_INTAKE_SUPPLY_CURRENT_LIMIT;
+
     initialIntakeConfig.MotionMagic.MotionMagicCruiseVelocity =
-        IntakeConfig.K_INITIAL_AND_KICKER_MAX_CRUISE_VELOCITY;
-    initialIntakeConfig.MotionMagic.MotionMagicAcceleration =
-        IntakeConfig.K_INITIAL_AND_KICKER_TARGET_ACCELERATION;
-    kickerIntakeConfig.MotionMagic.MotionMagicCruiseVelocity =
-        IntakeConfig.K_INITIAL_AND_KICKER_MAX_CRUISE_VELOCITY;
+        IntakeConfig.K_INITIAL_AND_KICKER_INTAKE_MAX_CRUISE_VELOCITY;
+    initialIntakeConfig.MotionMagic.MotionMagicCruiseVelocity =
+        IntakeConfig.K_INITIAL_AND_KICKER_INTAKE_MAX_CRUISE_VELOCITY;
     kickerIntakeConfig.MotionMagic.MotionMagicAcceleration =
-        IntakeConfig.K_INITIAL_AND_KICKER_TARGET_ACCELERATION;
+        IntakeConfig.K_INITIAL_AND_KICKER_INTAKE_TARGET_ACCELERATION;
+    kickerIntakeConfig.MotionMagic.MotionMagicAcceleration =
+        IntakeConfig.K_INITIAL_AND_KICKER_INTAKE_TARGET_ACCELERATION;
 
     initialIntakeConfig.Slot0.kP = IntakeConfig.K_INITIAL_INTAKE_P;
     initialIntakeConfig.Slot0.kI = IntakeConfig.K_INITIAL_INTAKE_I;
@@ -45,6 +48,7 @@ public class Intake {
     initialIntakeConfig.Slot0.kS = IntakeConfig.K_INITIAL_INTAKE_S;
     initialIntakeConfig.Slot0.kV = IntakeConfig.K_INITIAL_INTAKE_V;
     initialIntakeConfig.Slot0.kA = IntakeConfig.K_INITIAL_INTAKE_A;
+
     kickerIntakeConfig.Slot0.kP = IntakeConfig.K_KICKER_INTAKE_P;
     kickerIntakeConfig.Slot0.kI = IntakeConfig.K_KICKER_INTAKE_I;
     kickerIntakeConfig.Slot0.kD = IntakeConfig.K_KICKER_INTAKE_D;
@@ -52,8 +56,10 @@ public class Intake {
     kickerIntakeConfig.Slot0.kV = IntakeConfig.K_KICKER_INTAKE_V;
     kickerIntakeConfig.Slot0.kA = IntakeConfig.K_KICKER_INTAKE_A;
 
-    initialIntakeConfig.Feedback.SensorToMechanismRatio = IntakeConfig.K_INITIAL_INTAKE_GEAR_RATIO;
+    initialIntakeConfig.Feedback.SensorToMechanismRatio =
+        IntakeConfig.K_INITIAL_INTAKE_GEAR_RATIO; // gear ratio
     kickerIntakeConfig.Feedback.SensorToMechanismRatio = IntakeConfig.K_KICKER_INTAKE_GEAR_RATIO;
+
     initialIntakeConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     kickerIntakeConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
@@ -61,19 +67,30 @@ public class Intake {
     mKickerIntake.getConfigurator().apply(kickerIntakeConfig);
   }
 
+  // Velocity is rotations per second of motor accounting for SensorToMechanismRatio
   public void intake(double velocity) {
     mInitialIntake.setControl(new VelocityVoltage(velocity));
+    mKickerIntake.setControl(new VelocityVoltage(velocity));
   }
 
   public void runKicker(double velocity) {
     mKickerIntake.setControl(new VelocityVoltage(velocity));
   }
 
+  public void runInitial(double velocity) {
+    mInitialIntake.setControl(new VelocityVoltage(velocity));
+  }
+
   public void stopIntake() {
     mInitialIntake.stopMotor();
+    mKickerIntake.stopMotor();
   }
 
   public void stopKicker() {
     mKickerIntake.stopMotor();
+  }
+
+  public void stopInitial() {
+    mInitialIntake.stopMotor();
   }
 }

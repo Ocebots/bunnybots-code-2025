@@ -4,71 +4,77 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.config.CANMappings;
 import frc.robot.config.ShooterConfig;
 
-public class Shooter {
-  protected TalonFX mTopShooterMotor;
-  protected TalonFX mBottomShooterMotor;
+public class Shooter extends SubsystemBase {
+  protected TalonFX mTopShooter;
+  protected TalonFX mBottomShooter;
 
   public Shooter() {
-    mTopShooterMotor = new TalonFX(CANMappings.K_SHOOTER_TOP_ID);
-    mBottomShooterMotor = new TalonFX(CANMappings.K_SHOOTER_BOTTOM_ID);
+    mTopShooter = new TalonFX(CANMappings.K_TOP_SHOOTER_ID);
+    mBottomShooter = new TalonFX(CANMappings.K_BOTTOM_SHOOTER_ID);
 
-    TalonFXConfiguration topConfig = new TalonFXConfiguration();
-    TalonFXConfiguration bottomConfig = new TalonFXConfiguration();
+    TalonFXConfiguration topShooterConfig = new TalonFXConfiguration();
+    TalonFXConfiguration bottomShooterConfig = new TalonFXConfiguration();
 
-    topConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-    bottomConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-    topConfig.CurrentLimits.SupplyCurrentLimit =
-        ShooterConfig.K_SHOOTER_TOP_MOTORS_SUPPLY_CURRENT_LIMIT;
-    bottomConfig.CurrentLimits.SupplyCurrentLimit =
-        ShooterConfig.K_SHOOTER_BOTTOM_MOTORS_SUPPLY_CURRENT_LIMIT;
-    topConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-    bottomConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-    topConfig.CurrentLimits.StatorCurrentLimit =
-        ShooterConfig.K_SHOOTER_TOP_MOTORS_STATOR_CURRENT_LIMIT;
-    bottomConfig.CurrentLimits.StatorCurrentLimit =
-        ShooterConfig.K_SHOOTER_BOTTOM_MOTORS_STATOR_CURRENT_LIMIT;
-    topConfig.MotionMagic.MotionMagicCruiseVelocity =
-        ShooterConfig.K_SHOOTER_TOP_AND_SHOOTER_BOTTOM_MAX_CRUISE_VELOCITY;
-    topConfig.MotionMagic.MotionMagicAcceleration =
-        ShooterConfig.K_SHOOTER_TOP_AND_SHOOTER_BOTTOM_TARGET_ACCELERATION;
-    bottomConfig.MotionMagic.MotionMagicCruiseVelocity =
-        ShooterConfig.K_SHOOTER_TOP_AND_SHOOTER_BOTTOM_MAX_CRUISE_VELOCITY;
-    bottomConfig.MotionMagic.MotionMagicAcceleration =
-        ShooterConfig.K_SHOOTER_TOP_AND_SHOOTER_BOTTOM_TARGET_ACCELERATION;
+    topShooterConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+    topShooterConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+    topShooterConfig.CurrentLimits.StatorCurrentLimit =
+        ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_STATOR_CURRENT_LIMIT;
+    topShooterConfig.CurrentLimits.SupplyCurrentLimit =
+        ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_SUPPLY_CURRENT_LIMIT;
 
-    topConfig.Slot0.kP = ShooterConfig.K_SHOOTER_TOP_P;
-    topConfig.Slot0.kI = ShooterConfig.K_SHOOTER_TOP_I;
-    topConfig.Slot0.kD = ShooterConfig.K_SHOOTER_TOP_D;
-    topConfig.Slot0.kS = ShooterConfig.K_SHOOTER_TOP_S;
-    topConfig.Slot0.kV = ShooterConfig.K_SHOOTER_TOP_V;
-    topConfig.Slot0.kA = ShooterConfig.K_SHOOTER_TOP_A;
-    bottomConfig.Slot0.kP = ShooterConfig.K_SHOOTER_BOTTOM_P;
-    bottomConfig.Slot0.kI = ShooterConfig.K_SHOOTER_BOTTOM_I;
-    bottomConfig.Slot0.kD = ShooterConfig.K_SHOOTER_BOTTOM_D;
-    bottomConfig.Slot0.kS = ShooterConfig.K_SHOOTER_BOTTOM_S;
-    bottomConfig.Slot0.kV = ShooterConfig.K_SHOOTER_BOTTOM_V;
-    bottomConfig.Slot0.kA = ShooterConfig.K_SHOOTER_BOTTOM_A;
+    bottomShooterConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+    bottomShooterConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+    bottomShooterConfig.CurrentLimits.StatorCurrentLimit =
+        ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_STATOR_CURRENT_LIMIT;
+    bottomShooterConfig.CurrentLimits.SupplyCurrentLimit =
+        ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_SUPPLY_CURRENT_LIMIT;
 
-    topConfig.Feedback.SensorToMechanismRatio = ShooterConfig.K_SHOOTER_TOP_GEAR_RATIO;
-    bottomConfig.Feedback.SensorToMechanismRatio = ShooterConfig.K_SHOOTER_BOTTOM_GEAR_RATIO;
+    topShooterConfig.Slot0.kP = ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_P;
+    topShooterConfig.Slot0.kI = ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_I;
+    topShooterConfig.Slot0.kD = ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_D;
+    topShooterConfig.Slot0.kS = ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_S;
+    topShooterConfig.Slot0.kV = ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_V;
+    topShooterConfig.Slot0.kA = ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_A;
 
-    topConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-    bottomConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    bottomShooterConfig.Slot0.kP = ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_P;
+    bottomShooterConfig.Slot0.kI = ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_I;
+    bottomShooterConfig.Slot0.kD = ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_D;
+    bottomShooterConfig.Slot0.kS = ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_S;
+    bottomShooterConfig.Slot0.kV = ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_V;
+    bottomShooterConfig.Slot0.kA = ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_A;
 
-    mTopShooterMotor.getConfigurator().apply(topConfig);
-    mBottomShooterMotor.getConfigurator().apply(bottomConfig);
+    topShooterConfig.MotionMagic.MotionMagicCruiseVelocity =
+        ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_MAX_CRUISE_VELOCITY;
+    topShooterConfig.MotionMagic.MotionMagicCruiseVelocity =
+        ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_MAX_CRUISE_VELOCITY;
+    bottomShooterConfig.MotionMagic.MotionMagicAcceleration =
+        ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_TARGET_ACCELERATION;
+    bottomShooterConfig.MotionMagic.MotionMagicAcceleration =
+        ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_TARGET_ACCELERATION;
+
+    topShooterConfig.Feedback.SensorToMechanismRatio =
+        ShooterConfig.K_TOP_SHOOTER_GEAR_RATIO; // gear ratio (wheel rps)
+    bottomShooterConfig.Feedback.SensorToMechanismRatio = ShooterConfig.K_BOTTOM_SHOOTER_GEAR_RATIO;
+
+    topShooterConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    bottomShooterConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+
+    mTopShooter.getConfigurator().apply(topShooterConfig);
+    mBottomShooter.getConfigurator().apply(bottomShooterConfig);
   }
 
+  // Velocity is rotations per second of motor accounting for SensorToMechanismRatio
   public void shoot(double velocity) {
-    mTopShooterMotor.setControl(new VelocityVoltage(velocity));
-    mBottomShooterMotor.setControl(new VelocityVoltage(velocity));
+    mTopShooter.setControl(new VelocityVoltage(velocity));
+    mBottomShooter.setControl(new VelocityVoltage(velocity));
   }
 
-  public void stop() {
-    mTopShooterMotor.stopMotor();
-    mBottomShooterMotor.stopMotor();
+  public void stopShooter() {
+    mTopShooter.stopMotor();
+    mBottomShooter.stopMotor();
   }
 }
