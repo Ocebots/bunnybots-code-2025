@@ -7,7 +7,8 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-//we'll do nothing in this file too?
+
+// we'll do nothing in this file too?
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
@@ -19,23 +20,23 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotPeriodic() {
-    //loop continuously runs as long as the robot is active
+    // loop continuously runs as long as the robot is active
     CommandScheduler.getInstance().run();
   }
 
   @Override
   public void disabledInit() {
-    //runs once robot is disabled
+    // runs once robot is disabled
   }
 
   @Override
   public void disabledPeriodic() {
-    //robot is disabled but still running
+    // robot is disabled but still running
   }
 
   @Override
   public void disabledExit() {
-    //likely will never be used
+    // likely will never be used
   }
 
   @Override
@@ -49,7 +50,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousPeriodic() {
-    //nope screw that that's this one
+    // nope screw that that's this one
   }
 
   @Override
