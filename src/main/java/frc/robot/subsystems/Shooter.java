@@ -4,7 +4,6 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.config.CANMappings;
 import frc.robot.config.ShooterConfig;
@@ -77,44 +76,5 @@ public class Shooter extends SubsystemBase {
   public void stopShooter() {
     mTopShooter.stopMotor();
     mBottomShooter.stopMotor();
-  }
-
-  // 0.5 value accounts for noise
-  public boolean shooterActive() {
-    return Math.abs(mTopShooter.getVelocity().getValueAsDouble()) > 0.5
-        || Math.abs(mBottomShooter.getVelocity().getValueAsDouble()) > 0.5;
-  }
-
-  public double actualTopShooterMotorSpeedRPS() {
-    return mTopShooter.getVelocity().getValueAsDouble();
-  }
-
-  public double actualBottomShooterMotorSpeedRPS() {
-    return mBottomShooter.getVelocity().getValueAsDouble();
-  }
-
-  public double goalTopShootSpeedRPS() {
-    return mTopShooter.getClosedLoopReference().getValueAsDouble();
-  }
-
-  public double goalBottomShootSpeedRPS() {
-    return mBottomShooter.getClosedLoopReference().getValueAsDouble();
-  }
-
-  // @Override
-  public void periodic() {
-    SmartDashboard.putBoolean("Shooter Active", shooterActive());
-    SmartDashboard.putNumber(
-        "Top Shooter Motor Actual Speed (Rotations/Second)", actualTopShooterMotorSpeedRPS());
-    SmartDashboard.putNumber(
-        "Bottom Shooter Motor Actual Speed (Rotations/Second)", actualBottomShooterMotorSpeedRPS());
-    SmartDashboard.putNumber(
-        "Top Shooter Wheel Goal Speed (Rotations/Second)", goalTopShootSpeedRPS());
-    SmartDashboard.putNumber(
-        "Bottom Shooter Wheel Goal Speed (Rotations/Second)", goalBottomShootSpeedRPS());
-    SmartDashboard.putNumber(
-        "Top Shooter Motor Speed Error", mTopShooter.getClosedLoopError().getValueAsDouble());
-    SmartDashboard.putNumber(
-        "Bottom Shooter Motor Speed Error", mBottomShooter.getClosedLoopError().getValueAsDouble());
   }
 }

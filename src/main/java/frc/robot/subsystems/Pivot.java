@@ -89,6 +89,16 @@ public class Pivot extends SubsystemBase {
     mPivotRight.setControl(follower);
   }
 
+  public void zeroPivot() {
+    mPivotLeft.setPosition(0.0);
+    mPivotRight.setPosition(0.0);
+  }
+
+  public void stopPivot() {
+    mPivotLeft.stopMotor();
+    mPivotRight.stopMotor();
+  }
+
   // placeholders, incomplete
   public Rotation2d getHighShootAngle() {
     // add calculations
@@ -107,35 +117,16 @@ public class Pivot extends SubsystemBase {
 
   public double getPivotAngleDegrees() {
     currentAngle = mPivotLeft.getPosition().getValueAsDouble();
-    currentAngle = currentAngle % 1 * 360;
+    currentAngle = currentAngle * 360;
 
     return currentAngle;
   }
 
-  public double getPivotAngleTotalRotations() {
-    currentAngle = mPivotLeft.getPosition().getValueAsDouble();
-    return currentAngle;
-  }
-
-  public void zeroPivot() {
-    mPivotLeft.setPosition(0.0);
-    mPivotRight.setPosition(0.0);
-  }
-
-  public void stopPivot() {
-    mPivotLeft.stopMotor();
-    mPivotRight.stopMotor();
-  }
-
-  // @Override
+  @Override
   public void periodic() {
     SmartDashboard.putBoolean("Pivot At Setpoint", pivotAtSetpoint());
     SmartDashboard.putNumber("Pivot Actual Angle Degrees", getPivotAngleDegrees());
     SmartDashboard.putNumber(
-        "Pivot Goal Rotations", mPivotLeft.getClosedLoopReference().getValueAsDouble());
-    SmartDashboard.putNumber(
-        "Pivot Goal Angle Degrees",
-        mPivotLeft.getClosedLoopReference().getValueAsDouble() % 1 * 360);
-    SmartDashboard.putNumber("Pivot Error", mPivotLeft.getClosedLoopError().getValueAsDouble());
+        "Pivot Goal Angle Degrees", mPivotLeft.getClosedLoopReference().getValueAsDouble() * 360);
   }
 }
