@@ -34,6 +34,15 @@ public class Intake extends SubsystemBase {
     kickerIntakeConfig.CurrentLimits.SupplyCurrentLimit =
         IntakeConfig.K_KICKER_INTAKE_SUPPLY_CURRENT_LIMIT;
 
+    initialIntakeConfig.MotionMagic.MotionMagicCruiseVelocity =
+        IntakeConfig.K_INITIAL_AND_KICKER_INTAKE_MAX_CRUISE_VELOCITY;
+    initialIntakeConfig.MotionMagic.MotionMagicCruiseVelocity =
+        IntakeConfig.K_INITIAL_AND_KICKER_INTAKE_MAX_CRUISE_VELOCITY;
+    kickerIntakeConfig.MotionMagic.MotionMagicAcceleration =
+        IntakeConfig.K_INITIAL_AND_KICKER_INTAKE_TARGET_ACCELERATION;
+    kickerIntakeConfig.MotionMagic.MotionMagicAcceleration =
+        IntakeConfig.K_INITIAL_AND_KICKER_INTAKE_TARGET_ACCELERATION;
+
     initialIntakeConfig.Slot0.kP = IntakeConfig.K_INITIAL_INTAKE_P;
     initialIntakeConfig.Slot0.kI = IntakeConfig.K_INITIAL_INTAKE_I;
     initialIntakeConfig.Slot0.kD = IntakeConfig.K_INITIAL_INTAKE_D;

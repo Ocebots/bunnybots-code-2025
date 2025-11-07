@@ -48,6 +48,15 @@ public class Shooter extends SubsystemBase {
     bottomShooterConfig.Slot0.kV = ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_V;
     bottomShooterConfig.Slot0.kA = ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_A;
 
+    topShooterConfig.MotionMagic.MotionMagicCruiseVelocity =
+        ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_MAX_CRUISE_VELOCITY;
+    topShooterConfig.MotionMagic.MotionMagicCruiseVelocity =
+        ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_MAX_CRUISE_VELOCITY;
+    bottomShooterConfig.MotionMagic.MotionMagicAcceleration =
+        ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_TARGET_ACCELERATION;
+    bottomShooterConfig.MotionMagic.MotionMagicAcceleration =
+        ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_TARGET_ACCELERATION;
+
     topShooterConfig.Feedback.SensorToMechanismRatio =
         ShooterConfig.K_TOP_SHOOTER_GEAR_RATIO; // gear ratio (wheel rps)
     bottomShooterConfig.Feedback.SensorToMechanismRatio = ShooterConfig.K_BOTTOM_SHOOTER_GEAR_RATIO;
