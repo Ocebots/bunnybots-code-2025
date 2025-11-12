@@ -26,4 +26,11 @@ public class IntakeConfig {
 
   public static final double K_INITIAL_INTAKE_GEAR_RATIO = 0.0;
   public static final double K_KICKER_INTAKE_GEAR_RATIO = 0.0;
+
+  public static final double K_KICKER_INTAKE_VELOCITY = -0.3;
+  public static final double K_INITIAL_INTAKE_VELOCITY = 0.0;
+
+  public static final double K_KICKER_OUTTAKE_VELOCITY = 0.3;
+  public static final double K_INITIAL_OUTTAKE_VELOCITY = 0.0;
+
 }

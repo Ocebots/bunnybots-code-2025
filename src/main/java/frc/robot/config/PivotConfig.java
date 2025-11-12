@@ -20,4 +20,10 @@ public class PivotConfig {
 
   public static final double K_LEFT_PIVOT_GEAR_RATIO = 53.3;
   public static final double K_RIGHT_PIVOT_GEAR_RATIO = 53.3;
+
+  public static final double PIVOT_STAR_SPIRE_INTAKE_ANGLE = 0.0;
+  public static final double PIVOT_GROUND_INTAKE_ANGLE = 0.0;
+  public static final double PIVOT_OUTTAKE_ANGLE = 0.0;
+  public static final double PIVOT_LOW_SHOOT_ANGLE = 0.0;
+  public static final double PIVOT_IDLE_ANGLE = 0.0;
 }

@@ -1,5 +1,4 @@
 package frc.robot.subsystems;
-
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
@@ -8,21 +7,30 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.config.CANMappings;
 import frc.robot.config.PivotConfig;
+import frc.robot.config.TunerConstants;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Logged
 public class Pivot extends SubsystemBase {
   protected TalonFX mPivotLeft;
   protected TalonFX mPivotRight;
   protected Follower follower;
+  protected CommandSwerveDrivetrain drivetrain;
 
   private double currentAngle;
 
   public Pivot() {
     mPivotLeft = new TalonFX(CANMappings.K_PIVOT_LEFT_ID);
     mPivotRight = new TalonFX(CANMappings.K_PIVOT_RIGHT_ID);
+
+    drivetrain = TunerConstants.createDrivetrain();
 
     TalonFXConfiguration leftPivotConfig = new TalonFXConfiguration();
     TalonFXConfiguration rightPivotConfig = new TalonFXConfiguration();
@@ -101,19 +109,51 @@ public class Pivot extends SubsystemBase {
   }
 
   // placeholders, incomplete
-  public Rotation2d getHighShootAngle() {
+  public Rotation2d getInnerHighShootAngle() {
     // add calculations
     return Rotation2d.fromDegrees(0);
   }
 
-  public Rotation2d getLowShootAngle() {
+  public Rotation2d getInnerLowShootAngle() {
     // add calculations
     return Rotation2d.fromDegrees(0);
   }
+
 
   public boolean pivotAtSetpoint() {
     return Math.abs(mPivotLeft.getClosedLoopError().getValueAsDouble())
         <= PivotConfig.K_PIVOT_ANGLE_TOLERANCE;
+  }
+
+  public Rotation2d getHighAngle(int location){
+    //location: the cosmic converter we're shooting on - 1 is blue inner, 2 is blue outer, 3 is red inner, 5 is red outer
+    //want 5-8 calibrations (distance, angle)
+    double cosmicConverterX = 0.0;
+    double cosmicConverterY = 0.0;
+    InterpolatingDoubleTreeMap map = new InterpolatingDoubleTreeMap();
+    map.put(0.0,0.0);
+
+    List<Double> locations = new ArrayList<>(Arrays.asList(Units.inchesToMeters(4.0), Units.inchesToMeters(196.125), Units.inchesToMeters(4.0), Units.inchesToMeters(20.5), Units.inchesToMeters(644.0), Units.inchesToMeters(196.125), Units.inchesToMeters(644.0), Units.inchesToMeters(20.5)));//same order as explained above
+    if (location == 1){
+      cosmicConverterX = locations.get(0);
+      cosmicConverterY = locations.get(1);
+    }
+    if (location == 2){
+      cosmicConverterX = locations.get(2);
+      cosmicConverterY = locations.get(3);
+    }
+    if (location == 3){
+      cosmicConverterX = locations.get(4);
+      cosmicConverterY = locations.get(5);
+    }
+    if (location == 4){
+      cosmicConverterX = locations.get(6);
+      cosmicConverterY = locations.get(7);
+    }
+
+  double distance = Math.sqrt(Math.pow(cosmicConverterX-drivetrain.getState().Pose.getX(),2)+Math.pow(cosmicConverterY-drivetrain.getState().Pose.getY(),2));
+    return Rotation2d.fromDegrees(map.get(distance));
+
   }
 
   public double getPivotAngleDegrees() {
