@@ -19,7 +19,7 @@ public final class VisionConfig {
 
   public static final List<AprilTag>
       aprilTags = // Using a List.of, as it is immutable. Kinda redundant cus of the final keyword,
-          // but its probs fine 👍
+          // but its probs fine
           List.of(
               new AprilTag(
                   1,
