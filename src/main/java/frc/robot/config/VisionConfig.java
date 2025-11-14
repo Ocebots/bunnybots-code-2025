@@ -14,7 +14,7 @@ public class VisionConfig {
   public static final String CAMERA_NAME = "leftAprilTag"; // left
   public static final String SECOND_CAMERA_NAME = "rightAprilTag"; // right
   public static final String THIRD_CAMERA_NAME = "driverVision"; // rear cam
-  public static ArrayList<AprilTag> APRIL_TAG_LIST =
+  public static final ArrayList<AprilTag> APRIL_TAG_LIST =
       new ArrayList<AprilTag>(
           List.of(
               new AprilTag(
@@ -75,7 +75,7 @@ public class VisionConfig {
                       new Rotation3d(0, 0, 180)))));
 
   public static final AprilTagFieldLayout FIELD_LAYOUT =
-      new AprilTagFieldLayout(APRIL_TAG_LIST, Units.inchesToMeters(324), Units.inchesToMeters(648));
+      new AprilTagFieldLayout(APRIL_TAG_LIST, Units.inchesToMeters(648), Units.inchesToMeters(324));
   public static final PhotonPoseEstimator.PoseStrategy STRATEGY =
       PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR;
   public static final Transform3d LEFT_CAMERA_POSITION =
