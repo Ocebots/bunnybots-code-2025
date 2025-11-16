@@ -7,10 +7,6 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.commands.PivotCommand;
-import frc.robot.subsystems.Pivot;
-
 
 // we'll do nothing in this file too?
 public class Robot extends TimedRobot {
