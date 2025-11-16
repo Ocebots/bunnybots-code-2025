@@ -8,14 +8,13 @@ public class IntakeCommand extends Command {
     public static enum Positions {
         INTAKE,
         OUTTAKE,
-        SHOOT,
-        IDLE
+        SHOOT
     }
 
     private Positions pose;
     Intake intake;
 
-    public IntakeCommand(Intake intake) {
+    public IntakeCommand(Intake intake, Positions pose) {
         this.intake = intake;
         this.pose = pose;
         addRequirements(intake);

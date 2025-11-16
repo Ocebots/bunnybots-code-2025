@@ -12,9 +12,7 @@ public class PivotCommand extends Command {
         STAR_SPIRE_INTAKE,
       OUTTAKE,
       INNER_HIGH_SHOOT,
-      INNER_LOW_SHOOT,
         OUTER_HIGH_SHOOT,
-        OUTER_LOW_SHOOT,
       IDLE
     }
   
@@ -60,10 +58,6 @@ public class PivotCommand extends Command {
             }
           pivot.setPivotAngle(pivot.getHighAngle(innerLocation));
           break;
-  
-        case INNER_LOW_SHOOT:
-          pivot.setPivotAngle(new Rotation2d(PivotConfig.PIVOT_LOW_SHOOT_ANGLE));
-          break;
 
           case OUTER_HIGH_SHOOT:
               int outerLocation = 0;
@@ -74,10 +68,6 @@ public class PivotCommand extends Command {
                   outerLocation = 4;
               }
               pivot.setPivotAngle(pivot.getHighAngle(outerLocation));
-              break;
-
-          case OUTER_LOW_SHOOT:
-              pivot.setPivotAngle(new Rotation2d(PivotConfig.PIVOT_LOW_SHOOT_ANGLE));
               break;
 
         default:

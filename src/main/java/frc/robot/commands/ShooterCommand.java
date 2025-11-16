@@ -5,13 +5,13 @@ import frc.robot.subsystems.Shooter;
 
 public class ShooterCommand extends Command {
     public static enum Positions {
-        SHOOT,
+        SHOOT, IDLE
     }
 
     private Positions pose;
     Shooter shooter;
 
-    public ShooterCommand(Shooter shooter) {
+    public ShooterCommand(Shooter shooter, Positions pose) {
         this.shooter = shooter;
         this.pose = pose;
         addRequirements(shooter);
@@ -22,6 +22,10 @@ public class ShooterCommand extends Command {
         switch (pose) {
             case SHOOT:
                 shooter.shoot(ShooterConfig.K_TOP_AND_BOTTOM_SHOOTER_VELOCITY);
+                break;
+
+            case IDLE:
+                shooter.stopShooter();
                 break;
 
             default:

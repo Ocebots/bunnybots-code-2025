@@ -290,8 +290,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     //want 5-8 calibrations (distance, angle)
     double cosmicConverterX = 0.0;
     double cosmicConverterY = 0.0;
-    InterpolatingDoubleTreeMap map = new InterpolatingDoubleTreeMap();
-    map.put(0.0,0.0);
 
     List<Double> locations = new ArrayList<>(Arrays.asList(Units.inchesToMeters(4.0), Units.inchesToMeters(196.125), Units.inchesToMeters(4.0), Units.inchesToMeters(20.5), Units.inchesToMeters(644.0), Units.inchesToMeters(196.125), Units.inchesToMeters(644.0), Units.inchesToMeters(20.5)));//same order as explained above
     if (location == 1){

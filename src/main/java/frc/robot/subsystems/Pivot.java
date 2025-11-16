@@ -108,18 +108,6 @@ public class Pivot extends SubsystemBase {
     mPivotRight.stopMotor();
   }
 
-  // placeholders, incomplete
-  public Rotation2d getInnerHighShootAngle() {
-    // add calculations
-    return Rotation2d.fromDegrees(0);
-  }
-
-  public Rotation2d getInnerLowShootAngle() {
-    // add calculations
-    return Rotation2d.fromDegrees(0);
-  }
-
-
   public boolean pivotAtSetpoint() {
     return Math.abs(mPivotLeft.getClosedLoopError().getValueAsDouble())
         <= PivotConfig.K_PIVOT_ANGLE_TOLERANCE;
