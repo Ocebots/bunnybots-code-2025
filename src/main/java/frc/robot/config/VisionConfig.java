@@ -93,22 +93,11 @@ public final class VisionConfig {
 
   public static final Transform3d DRIVER_CAMERA_POSITION =
       new Transform3d(
-              Units.inchesToMeters(0.0),
-              Units.inchesToMeters(0.0),
-              0.0,
-              new Rotation3d(0.0, 0.0, 0.0));
+          Units.inchesToMeters(0.0), Units.inchesToMeters(0.0), 0.0, new Rotation3d(0.0, 0.0, 0.0));
   public static final Transform3d LEFT_CAMERA_POSITION =
       new Transform3d(
-          Units.inchesToMeters(0),
-          Units.inchesToMeters(0),
-          0.0,
-          new Rotation3d(0.0, 0.0, 0.0));
+          Units.inchesToMeters(0), Units.inchesToMeters(0), 0.0, new Rotation3d(0.0, 0.0, 0.0));
   public static final Transform3d RIGHT_CAMERA_POSITION =
       new Transform3d(
-          Units.inchesToMeters(0),
-          Units.inchesToMeters(0),
-          0.0,
-          new Rotation3d(0.0, 0.0, 0.0));
-
-
+          Units.inchesToMeters(0), Units.inchesToMeters(0), 0.0, new Rotation3d(0.0, 0.0, 0.0));
 }
