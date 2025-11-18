@@ -5,30 +5,30 @@ import frc.robot.config.IntakeConfig;
 import frc.robot.subsystems.Intake;
 
 public class IntakeCommand extends Command {
-  public static enum Positions {
+  public static enum Speeds {
     INTAKE,
-    OUTTAKE,
+    OUTTAKE_SCORE,
     SHOOT
   }
 
-  private Positions pose;
+  private Speeds speed;
   Intake intake;
 
-  public IntakeCommand(Intake intake, Positions pose) {
+  public IntakeCommand(Intake intake, Speeds speed) {
     this.intake = intake;
-    this.pose = pose;
+    this.speed = speed;
     addRequirements(intake);
   }
 
   @Override
   public void initialize() {
-    switch (pose) {
+    switch (speed) {
       case INTAKE:
         intake.runKicker(IntakeConfig.K_KICKER_INTAKE_VELOCITY);
         intake.runInitial(IntakeConfig.K_INITIAL_INTAKE_VELOCITY);
         break;
 
-      case OUTTAKE:
+      case OUTTAKE_SCORE:
         intake.runKicker(IntakeConfig.K_KICKER_OUTTAKE_VELOCITY);
         intake.runInitial(IntakeConfig.K_INITIAL_OUTTAKE_VELOCITY);
         break;
@@ -39,8 +39,7 @@ public class IntakeCommand extends Command {
         break;
 
       default:
-        intake.stopKicker();
-        intake.stopInitial();
+        intake.stopIntake();
         break;
     }
   }

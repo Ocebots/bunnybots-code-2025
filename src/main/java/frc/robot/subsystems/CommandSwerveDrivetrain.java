@@ -10,7 +10,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
@@ -19,9 +18,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.config.TunerConstants.TunerSwerveDrivetrain;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.function.Supplier;
 
 /**
@@ -274,60 +270,5 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
       Matrix<N3, N1> visionMeasurementStdDevs) {
     super.addVisionMeasurement(
         visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds), visionMeasurementStdDevs);
-  }
-
-  protected CommandSwerveDrivetrain drivetrain;
-
-  // Initialize the facing angle request
-  private final SwerveRequest.FieldCentricFacingAngle m_faceAngle =
-      new SwerveRequest.FieldCentricFacingAngle()
-          .withDriveRequestType(
-              SwerveModule.DriveRequestType.OpenLoopVoltage); // Or OpenLoopDutyCycle
-
-  public void driveToAngle(int location) {
-    // location: the cosmic converter we're shooting on - 1 is blue inner, 2 is blue outer, 3 is red
-    // inner, 4 is red outer
-    // want 5-8 calibrations (distance, angle)
-    double cosmicConverterX = 0.0;
-    double cosmicConverterY = 0.0;
-
-    List<Double> locations =
-        new ArrayList<>(
-            Arrays.asList(
-                Units.inchesToMeters(4.0),
-                Units.inchesToMeters(196.125),
-                Units.inchesToMeters(4.0),
-                Units.inchesToMeters(20.5),
-                Units.inchesToMeters(644.0),
-                Units.inchesToMeters(196.125),
-                Units.inchesToMeters(644.0),
-                Units.inchesToMeters(20.5))); // same order as explained above
-    if (location == 1) {
-      cosmicConverterX = locations.get(0);
-      cosmicConverterY = locations.get(1);
-    }
-    if (location == 2) {
-      cosmicConverterX = locations.get(2);
-      cosmicConverterY = locations.get(3);
-    }
-    if (location == 3) {
-      cosmicConverterX = locations.get(4);
-      cosmicConverterY = locations.get(5);
-    }
-    if (location == 4) {
-      cosmicConverterX = locations.get(6);
-      cosmicConverterY = locations.get(7);
-    }
-
-    drivetrain.setControl(
-        m_faceAngle
-            .withVelocityX(0)
-            .withVelocityY(0)
-            // Set the desired direction in Radians
-            .withTargetDirection(
-                new Rotation2d(
-                    Math.atan2(
-                        cosmicConverterX - drivetrain.getState().Pose.getX(),
-                        cosmicConverterY - drivetrain.getState().Pose.getY()))));
   }
 }

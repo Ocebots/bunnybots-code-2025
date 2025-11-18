@@ -8,9 +8,9 @@ import frc.robot.subsystems.Pivot;
 
 public class PivotCommand extends Command {
   public static enum Positions {
-    GROUND_INTAKE,
-    STAR_SPIRE_INTAKE,
-    OUTTAKE,
+    INTAKE_GROUND,
+    INTAKE_STAR_SPIRE,
+    OUTTAKE_SCORE,
     INNER_HIGH_SHOOT,
     OUTER_HIGH_SHOOT,
     IDLE
@@ -28,17 +28,17 @@ public class PivotCommand extends Command {
   @Override
   public void initialize() {
     switch (pose) {
-      case GROUND_INTAKE:
+      case INTAKE_GROUND:
         pivot.setPivotAngle(
             new Rotation2d(Units.degreesToRadians(PivotConfig.PIVOT_GROUND_INTAKE_ANGLE)));
         break;
 
-      case STAR_SPIRE_INTAKE:
+      case INTAKE_STAR_SPIRE:
         pivot.setPivotAngle(
             new Rotation2d(Units.degreesToRadians(PivotConfig.PIVOT_STAR_SPIRE_INTAKE_ANGLE)));
         break;
 
-      case OUTTAKE:
+      case OUTTAKE_SCORE:
         pivot.setPivotAngle(
             new Rotation2d(Units.degreesToRadians(PivotConfig.PIVOT_OUTTAKE_ANGLE)));
         break;
@@ -48,25 +48,11 @@ public class PivotCommand extends Command {
         break;
 
       case INNER_HIGH_SHOOT:
-        int innerLocation = 0;
-        if (pivot.getAlliance() == 0) {
-          innerLocation = 1;
-        }
-        if (pivot.getAlliance() == 1) {
-          innerLocation = 3;
-        }
-        pivot.setPivotAngle(pivot.getHighAngle(innerLocation));
+        pivot.setPivotAngle(pivot.getHighAngle(Pivot.getLocation(1)));
         break;
 
       case OUTER_HIGH_SHOOT:
-        int outerLocation = 0;
-        if (pivot.getAlliance() == 0) {
-          outerLocation = 2;
-        }
-        if (pivot.getAlliance() == 1) {
-          outerLocation = 4;
-        }
-        pivot.setPivotAngle(pivot.getHighAngle(outerLocation));
+        pivot.setPivotAngle(pivot.getHighAngle(Pivot.getLocation(0)));
         break;
 
       default:
