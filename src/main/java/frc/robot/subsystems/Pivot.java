@@ -8,21 +8,32 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.config.CANMappings;
 import frc.robot.config.PivotConfig;
+import frc.robot.config.TunerConstants;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 @Logged
 public class Pivot extends SubsystemBase {
   protected TalonFX mPivotLeft;
   protected TalonFX mPivotRight;
   protected Follower follower;
+  protected CommandSwerveDrivetrain drivetrain;
 
   private double currentAngle;
 
   public Pivot() {
     mPivotLeft = new TalonFX(CANMappings.K_PIVOT_LEFT_ID);
     mPivotRight = new TalonFX(CANMappings.K_PIVOT_RIGHT_ID);
+
+    drivetrain = TunerConstants.createDrivetrain();
 
     TalonFXConfiguration leftPivotConfig = new TalonFXConfiguration();
     TalonFXConfiguration rightPivotConfig = new TalonFXConfiguration();
@@ -100,20 +111,23 @@ public class Pivot extends SubsystemBase {
     mPivotRight.stopMotor();
   }
 
-  // placeholders, incomplete
-  public Rotation2d getHighShootAngle() {
-    // add calculations
-    return Rotation2d.fromDegrees(0);
-  }
-
-  public Rotation2d getLowShootAngle() {
-    // add calculations
-    return Rotation2d.fromDegrees(0);
-  }
-
   public boolean pivotAtSetpoint() {
     return Math.abs(mPivotLeft.getClosedLoopError().getValueAsDouble())
         <= PivotConfig.K_PIVOT_ANGLE_TOLERANCE;
+  }
+
+  public Rotation2d getHighAngle(Translation2d location) {
+    // location: the cosmic converter we're shooting on - 1 is blue inner, 2 is blue outer, 3 is red
+    // inner, 4 is red outer
+    // want 5-8 calibrations (distance, angle)
+    InterpolatingDoubleTreeMap map = new InterpolatingDoubleTreeMap();
+    map.put(0.0, 0.0);
+
+    double distance =
+        Math.sqrt(
+            Math.pow(location.getX() - drivetrain.getState().Pose.getX(), 2)
+                + Math.pow(location.getY() - drivetrain.getState().Pose.getY(), 2));
+    return Rotation2d.fromDegrees(map.get(distance));
   }
 
   public double getPivotAngleDegrees() {
@@ -121,5 +135,49 @@ public class Pivot extends SubsystemBase {
     currentAngle = currentAngle * 360;
 
     return currentAngle;
+  }
+
+  public static int getAlliance() {
+    Optional<DriverStation.Alliance> alliance = DriverStation.getAlliance();
+
+    if (alliance.isPresent()) {
+      if (alliance.get() == DriverStation.Alliance.Blue) {
+        return 0;
+      }
+      if (alliance.get() == DriverStation.Alliance.Red) {
+        return 1;
+      }
+    }
+    System.out.println("no alliance detected: likely causing many errors");
+    return -1;
+  }
+
+  public static Translation2d getLocation(int innerouter) {
+    // ArrayList values: 0 - blue inner, 1 - blue outer, 2 - red inner, 3 - red outer
+    // innerouter: 0 - outer, 1 - inner
+    // getAlliance(): blue - 0, red - 1
+
+    List<Translation2d> locations =
+        new ArrayList<>(
+            Arrays.asList(
+                new Translation2d(4.0, 196.125),
+                new Translation2d(4.0, 20.5),
+                new Translation2d(644.0, 196.125),
+                new Translation2d(644.0, 20.5))); // same order as explained above
+
+    if (innerouter == 1 & Pivot.getAlliance() == 0) { // blue inner
+      return locations.get(0);
+    }
+    if (innerouter == 0 & Pivot.getAlliance() == 0) { // blue outer
+      return locations.get(1);
+    }
+    if (innerouter == 1 & Pivot.getAlliance() == 1) { // red inner
+      return locations.get(2);
+    }
+    if (innerouter == 0 & Pivot.getAlliance() == 1) { // red outer
+      return locations.get(3);
+    }
+    System.out.println("error in getLocation in pivot subsystem");
+    return new Translation2d(0.0, 0.0);
   }
 }

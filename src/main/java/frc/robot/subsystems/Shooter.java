@@ -1,7 +1,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -69,8 +69,8 @@ public class Shooter extends SubsystemBase {
 
   // Velocity is rotations per second of motor accounting for SensorToMechanismRatio
   public void shoot(double velocity) {
-    mTopShooter.setControl(new VelocityVoltage(velocity));
-    mBottomShooter.setControl(new VelocityVoltage(velocity));
+    mTopShooter.setControl(new DutyCycleOut(velocity));
+    mBottomShooter.setControl(new DutyCycleOut(-velocity));
   }
 
   public void stopShooter() {
