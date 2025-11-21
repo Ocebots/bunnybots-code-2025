@@ -1,11 +1,16 @@
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.*;
+
 import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.config.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Pivot;
 
@@ -16,8 +21,15 @@ public class DrivetrainCommand extends Command {
     IDLE
   }
 
+  private double MaxSpeed =
+      TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
+  private double MaxAngularRate =
+      RotationsPerSecond.of(1.5)
+          .in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
+
   private DrivetrainCommand.Position state;
   private CommandSwerveDrivetrain drivetrain;
+  private CommandXboxController xboxController;
   private Pose2d robotPose;
   private Translation2d diff;
   private Rotation2d targetRotation;
@@ -29,9 +41,13 @@ public class DrivetrainCommand extends Command {
           .withDriveRequestType(
               SwerveModule.DriveRequestType.OpenLoopVoltage); // Or OpenLoopDutyCycle
 
-  public DrivetrainCommand(CommandSwerveDrivetrain drivetrain, DrivetrainCommand.Position state) {
+  public DrivetrainCommand(
+      CommandSwerveDrivetrain drivetrain,
+      DrivetrainCommand.Position state,
+      CommandXboxController xboxController) {
     this.drivetrain = drivetrain;
     this.state = state;
+    this.xboxController = xboxController;
 
     addRequirements(drivetrain);
   }
@@ -67,6 +83,18 @@ public class DrivetrainCommand extends Command {
                             cosmicConverter.getY() - drivetrain.getState().Pose.getY()))));
         break;
       case IDLE:
+        drivetrain.setDefaultCommand(
+            // Drivetrain will execute this command periodically
+            new RunCommand(
+                () ->
+                    drivetrain.setControl(
+                        (new SwerveRequest.FieldCentric()
+                            .withVelocityX(xboxController.getLeftY())
+                            .withVelocityY(xboxController.getLeftX())
+                            .withRotationalRate(
+                                xboxController
+                                    .getRightX()))))); // Drive counterclockwise with negative X
+        // (left)
     }
   }
 
