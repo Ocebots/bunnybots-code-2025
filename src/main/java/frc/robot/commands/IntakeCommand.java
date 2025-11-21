@@ -8,7 +8,8 @@ public class IntakeCommand extends Command {
   public static enum Speeds {
     INTAKE,
     OUTTAKE_SCORE,
-    SHOOT
+    SHOOT,
+    IDLE
   }
 
   private Speeds speed;
@@ -36,6 +37,10 @@ public class IntakeCommand extends Command {
       case SHOOT:
         intake.runKicker(IntakeConfig.K_KICKER_INTAKE_VELOCITY);
         intake.runInitial(IntakeConfig.K_KICKER_INTAKE_VELOCITY);
+        break;
+
+      case IDLE:
+        intake.stopIntake();
         break;
 
       default:

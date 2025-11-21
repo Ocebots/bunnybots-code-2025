@@ -12,7 +12,8 @@ import frc.robot.subsystems.Pivot;
 public class DrivetrainCommand extends Command {
   public static enum Position {
     OUTER_COSMIC_CONVERTER,
-    INNER_COSMIC_CONVERTER
+    INNER_COSMIC_CONVERTER,
+    IDLE
   }
 
   private DrivetrainCommand.Position state;
@@ -65,6 +66,7 @@ public class DrivetrainCommand extends Command {
                             cosmicConverter.getX() - drivetrain.getState().Pose.getX(),
                             cosmicConverter.getY() - drivetrain.getState().Pose.getY()))));
         break;
+      case IDLE:
     }
   }
 
