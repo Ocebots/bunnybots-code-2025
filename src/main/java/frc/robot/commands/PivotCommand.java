@@ -7,7 +7,7 @@ import frc.robot.config.PivotConfig;
 import frc.robot.subsystems.Pivot;
 
 public class PivotCommand extends Command {
-  public static enum Positions {
+  public static enum Position {
     INTAKE_GROUND,
     INTAKE_STAR_SPIRE,
     OUTTAKE_SCORE,
@@ -16,10 +16,10 @@ public class PivotCommand extends Command {
     IDLE
   }
 
-  private Positions pose;
+  private Position pose;
   Pivot pivot;
 
-  public PivotCommand(Pivot pivot, Positions pose) {
+  public PivotCommand(Pivot pivot, Position pose) {
     this.pivot = pivot;
     this.pose = pose;
     addRequirements(pivot);
