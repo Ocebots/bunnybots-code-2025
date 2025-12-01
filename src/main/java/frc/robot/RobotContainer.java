@@ -5,21 +5,24 @@
 package frc.robot;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.config.CANMappings;
+import frc.robot.config.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Pivot;
 import frc.robot.subsystems.Shooter;
 
+@Logged
 public class RobotContainer {
   private CommandXboxController controller = new CommandXboxController(0);
-  private CommandSwerveDrivetrain drivetrain;
-  private Intake intake;
-  private Pivot pivot;
-  private Shooter shooter;
+  private CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+  private Intake intake = new Intake();
+  private Pivot pivot = new Pivot();
+  private Shooter shooter = new Shooter();
   private final Superstructure superstructure =
       new Superstructure(intake, pivot, shooter, drivetrain);
   private final Pigeon2 pigeon2 = new Pigeon2(CANMappings.PIGEON_CAN_ID);
