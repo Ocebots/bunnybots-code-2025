@@ -25,4 +25,6 @@ public class PivotConfig {
   public static final double PIVOT_GROUND_INTAKE_ANGLE = 0.0;
   public static final double PIVOT_OUTTAKE_ANGLE = 0.0;
   public static final double PIVOT_IDLE_ANGLE = 0.0;
+
+  public static double ANGLE_ADD = 0.0;
 }

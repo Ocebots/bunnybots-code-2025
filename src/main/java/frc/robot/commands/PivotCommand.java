@@ -50,11 +50,13 @@ public class PivotCommand extends Command {
         break;
 
       case INNER_HIGH_SHOOT:
-        pivot.setPivotAngle(pivot.getHighAngle(Pivot.getLocation(1)));
+        // pivot.setPivotAngle(pivot.getHighAngle(Pivot.getLocation(1)));
+        pivot.setPivotAngle(new Rotation2d(PivotConfig.ANGLE_ADD));
         break;
 
       case OUTER_HIGH_SHOOT:
-        pivot.setPivotAngle(pivot.getHighAngle(Pivot.getLocation(0)));
+        // pivot.setPivotAngle(pivot.getHighAngle(Pivot.getLocation(0)));
+        pivot.setPivotAngle(new Rotation2d(PivotConfig.ANGLE_ADD));
         break;
 
       default:

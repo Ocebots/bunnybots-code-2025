@@ -10,6 +10,7 @@ import frc.robot.commands.IntakeCommand;
 import frc.robot.commands.PivotCommand;
 import frc.robot.commands.ShooterCommand;
 import frc.robot.config.CANMappings;
+import frc.robot.config.PivotConfig;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Pivot;
@@ -39,6 +40,7 @@ public class Superstructure {
     READY_LOW_SCORE,
     INTAKE
   }
+
   public Command toggleCloseHigh() {
     return Commands.runOnce(
         () -> {
@@ -82,17 +84,43 @@ public class Superstructure {
           }
         });
   }
-//  public Command incPivDeg(){
-//    return Commands.runOnce(
-//            ()-> {
-//              switch (state){
-//                case READY_CLOSE_HIGH:
-//                case READY_FAR_HIGH:
-//
-//              }
-//            }
-//    )
-//  }
+
+  public Command incPivDegUp() {
+    return Commands.runOnce(
+        () -> {
+          switch (state) {
+            case READY_CLOSE_HIGH:
+            case READY_FAR_HIGH:
+            case READY_LOW_SCORE:
+            case INTAKE:
+            case IDLE:
+              incrementPivDegreeUp();
+          }
+        });
+  }
+
+  public Command incPivDegDown() {
+    return Commands.runOnce(
+        () -> {
+          switch (state) {
+            case READY_CLOSE_HIGH:
+            case READY_FAR_HIGH:
+            case READY_LOW_SCORE:
+            case INTAKE:
+            case IDLE:
+              incrementPivDegreeDown();
+          }
+        });
+  }
+
+  public static void incrementPivDegreeUp() {
+    PivotConfig.ANGLE_ADD++;
+  }
+
+  public static void incrementPivDegreeDown() {
+    PivotConfig.ANGLE_ADD--;
+  }
+
   public Command action() {
     return Commands.runOnce(
         () -> {
