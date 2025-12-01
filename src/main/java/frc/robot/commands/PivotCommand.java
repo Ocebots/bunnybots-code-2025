@@ -1,13 +1,15 @@
 package frc.robot.commands;
 
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.config.PivotConfig;
 import frc.robot.subsystems.Pivot;
 
+@Logged
 public class PivotCommand extends Command {
-  public static enum Positions {
+  public static enum Position {
     INTAKE_GROUND,
     INTAKE_STAR_SPIRE,
     OUTTAKE_SCORE,
@@ -16,10 +18,10 @@ public class PivotCommand extends Command {
     IDLE
   }
 
-  private Positions pose;
+  private Position pose;
   Pivot pivot;
 
-  public PivotCommand(Pivot pivot, Positions pose) {
+  public PivotCommand(Pivot pivot, Position pose) {
     this.pivot = pivot;
     this.pose = pose;
     addRequirements(pivot);

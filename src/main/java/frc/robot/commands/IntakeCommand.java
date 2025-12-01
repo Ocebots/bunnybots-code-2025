@@ -1,14 +1,17 @@
 package frc.robot.commands;
 
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.config.IntakeConfig;
 import frc.robot.subsystems.Intake;
 
+@Logged
 public class IntakeCommand extends Command {
   public static enum Speeds {
     INTAKE,
     OUTTAKE_SCORE,
-    SHOOT
+    SHOOT,
+    IDLE
   }
 
   private Speeds speed;
@@ -36,6 +39,10 @@ public class IntakeCommand extends Command {
       case SHOOT:
         intake.runKicker(IntakeConfig.K_KICKER_INTAKE_VELOCITY);
         intake.runInitial(IntakeConfig.K_KICKER_INTAKE_VELOCITY);
+        break;
+
+      case IDLE:
+        intake.stopIntake();
         break;
 
       default:
