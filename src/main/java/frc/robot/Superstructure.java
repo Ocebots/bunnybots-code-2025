@@ -39,7 +39,6 @@ public class Superstructure {
     READY_LOW_SCORE,
     INTAKE
   }
-
   public Command toggleCloseHigh() {
     return Commands.runOnce(
         () -> {
@@ -83,7 +82,17 @@ public class Superstructure {
           }
         });
   }
-
+//  public Command incPivDeg(){
+//    return Commands.runOnce(
+//            ()-> {
+//              switch (state){
+//                case READY_CLOSE_HIGH:
+//                case READY_FAR_HIGH:
+//
+//              }
+//            }
+//    )
+//  }
   public Command action() {
     return Commands.runOnce(
         () -> {

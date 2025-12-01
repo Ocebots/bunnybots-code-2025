@@ -6,6 +6,15 @@ package frc.robot;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.math.util.Units.*;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -25,7 +34,28 @@ public class RobotContainer {
   private Shooter shooter = new Shooter();
   private final Superstructure superstructure =
       new Superstructure(intake, pivot, shooter, drivetrain);
-  private final Pigeon2 pigeon2 = new Pigeon2(CANMappings.PIGEON_CAN_ID);
+  public static Pigeon2 pigeon2 = new Pigeon2(CANMappings.PIGEON_CAN_ID);
+  Translation2d m_frontLeftLocation =
+      new Translation2d(Units.inchesToMeters(10.875), Units.inchesToMeters(10.875));
+  Translation2d m_frontRightLocation =
+      new Translation2d(Units.inchesToMeters(10.875), Units.inchesToMeters(-10.875));
+  Translation2d m_backLeftLocation =
+      new Translation2d(Units.inchesToMeters(-10.875), Units.inchesToMeters(10.875));
+  Translation2d m_backRightLocation =
+      new Translation2d(Units.inchesToMeters(-10.855), Units.inchesToMeters(-10.875));
+  SwerveDrivePoseEstimator m_odometry =
+      new SwerveDrivePoseEstimator(
+          new SwerveDriveKinematics(
+              m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation),
+          pigeon2.getRotation2d(),
+          new SwerveModulePosition[] {
+            drivetrain.getModule(0).getPosition(true),
+            drivetrain.getModule(1).getPosition(true),
+            drivetrain.getModule(2).getPosition(true),
+            drivetrain.getModule(3).getPosition(true)
+          },
+          new Pose2d(0.0, 0.0, new Rotation2d()));
+  static Field2d m_field = new Field2d();
 
   // links xbox controller to controls
   public RobotContainer() {
@@ -38,6 +68,7 @@ public class RobotContainer {
     controller.leftBumper().onTrue(superstructure.toggleFarHigh());
     controller.rightBumper().onTrue(superstructure.toggleLowScore());
     controller.rightStick().onTrue(superstructure.toggleIntake());
+    controller.a().onTrue(superstructure.incrementPivDeg());
   }
 
   public Command getAutonomousCommand() {

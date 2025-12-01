@@ -6,14 +6,22 @@ package frc.robot;
 
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.config.TunerConstants;
+import frc.robot.config.VisionConfig;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Vision;
+import java.util.List;
+import org.photonvision.targeting.PhotonPipelineResult;
 
 @Logged
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
-
+  CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
   @Logged private final RobotContainer m_robotContainer;
 
   public Robot() {
@@ -26,6 +34,64 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
     // loop continuously runs as long as the robot is active
     CommandScheduler.getInstance().run();
+    m_robotContainer.m_odometry.update(
+        new Rotation2d(RobotContainer.pigeon2.getYaw().getValueAsDouble()),
+        new SwerveModulePosition[] {
+          drivetrain.getModule(0).getPosition(true),
+          drivetrain.getModule(1).getPosition(true),
+          drivetrain.getModule(2).getPosition(true),
+          drivetrain.getModule(3).getPosition(true)
+        });
+
+    // Updates the stored reference pose for use when using the CLOSEST_TO_REFERENCE_POSE_STRATEGY
+    // (not in use)
+    VisionConfig.photonPoseEstimatorLeft.setReferencePose(
+        m_robotContainer.m_odometry.getEstimatedPosition());
+    VisionConfig.photonPoseEstimatorRight.setReferencePose(
+        m_robotContainer.m_odometry.getEstimatedPosition());
+
+    // Puts the pose data from one camera into a list
+    List<PhotonPipelineResult> results = Vision.leftCameraApril.getAllUnreadResults();
+
+    // If there is pose data from the cameras, get the latest estimated pose and update the 'vision'
+    // photon pose estimator
+    // If there is no multi tag result and the distance from the camera to the target is greater
+    // than
+    // 4 meters, return
+    // Otherwise, add the latest vision pose estimate to a filter with the odometry pose estimate
+    // and set
+    // the guessed pose from that to the current pose
+    if (!results.isEmpty()) {
+      PhotonPipelineResult result = results.get(results.size() - 1);
+      VisionConfig.photonPoseEstimatorLeft
+          .update(result)
+          .ifPresent(
+              (pose) -> {
+                if (result.multitagResult.isEmpty()
+                    && result.targets.get(0).bestCameraToTarget.getTranslation().getNorm() > 4) {
+                  return;
+                }
+                m_robotContainer.m_odometry.addVisionMeasurement(
+                    pose.estimatedPose.toPose2d(), pose.timestampSeconds);
+              });
+    }
+
+    results = Vision.rightCameraApril.getAllUnreadResults();
+
+    if (!results.isEmpty()) {
+      PhotonPipelineResult result = results.get(results.size() - 1);
+      VisionConfig.photonPoseEstimatorRight
+          .update(result)
+          .ifPresent(
+              (pose) -> {
+                if (result.multitagResult.isEmpty()
+                    && result.targets.get(0).bestCameraToTarget.getTranslation().getNorm() > 4) {
+                  return;
+                }
+                m_robotContainer.m_odometry.addVisionMeasurement(
+                    pose.estimatedPose.toPose2d(), pose.timestampSeconds);
+              });
+    }
   }
 
   @Override
