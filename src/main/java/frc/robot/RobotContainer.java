@@ -68,7 +68,7 @@ public class RobotContainer {
     controller.leftBumper().onTrue(superstructure.toggleFarHigh());
     controller.rightBumper().onTrue(superstructure.toggleLowScore());
     controller.rightStick().onTrue(superstructure.toggleIntake());
-    controller.a().onTrue(superstructure.incrementPivDeg());
+    // controller.a().onTrue(superstructure.incrementPivDeg());
   }
 
   public Command getAutonomousCommand() {
