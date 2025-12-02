@@ -14,6 +14,7 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.commands.DrivetrainCommand;
 import frc.robot.commands.PivotCommand;
@@ -149,10 +150,10 @@ public class Pivot extends SubsystemBase {
     return currentAngle;
   }
 
-    private final SwerveRequest.FieldCentricFacingAngle m_faceAngle =
-            new SwerveRequest.FieldCentricFacingAngle()
-                    .withDriveRequestType(
-                            SwerveModule.DriveRequestType.OpenLoopVoltage); // Or OpenLoopDutyCycle
+  private final SwerveRequest.FieldCentricFacingAngle m_faceAngle =
+      new SwerveRequest.FieldCentricFacingAngle()
+          .withDriveRequestType(
+              SwerveModule.DriveRequestType.OpenLoopVoltage); // Or OpenLoopDutyCycle
 
   public static int getAlliance() {
     Optional<DriverStation.Alliance> alliance = DriverStation.getAlliance();
@@ -361,34 +362,60 @@ public class Pivot extends SubsystemBase {
       return PivotCommand.Position.OUTER_HIGH_SHOOT;
     }
   }
-  public Command getCosmicConverter(boolean isInner){
-      Optional<DriverStation.Alliance> alliance1 = DriverStation.getAlliance();
-      Translation2d cosmicConverter = new Translation2d();
-      if (alliance1.isPresent()) {
-          if (alliance1.get() == DriverStation.Alliance.Blue) {
-              if (isInner) {
-                  cosmicConverter = new Translation2d(Units.inchesToMeters(4.0), Units.inchesToMeters(196.125));
-              }
-              else{cosmicConverter = new Translation2d(Units.inchesToMeters(4.0), Units.inchesToMeters(20.5));}
-          }
-          if (alliance1.get() == DriverStation.Alliance.Red) {
-              if (isInner) {cosmicConverter = new Translation2d(Units.inchesToMeters(644.0), Units.inchesToMeters(196.125));}
-              else{cosmicConverter = new Translation2d(Units.inchesToMeters(644.0), Units.inchesToMeters(20.5));}
-          }
 
-          drivetrain.setControl(
-                  m_faceAngle
-                          .withVelocityX(0.1)
-                          .withVelocityY(0.1)
-                          // Set the desired direction in Radians
-                          .withTargetDirection(
-                                  new Rotation2d(
-                                          Math.atan2(
-                                                  cosmicConverter.getX() - drivetrain.getState().Pose.getX(),
-                                                  cosmicConverter.getY() - drivetrain.getState().Pose.getY()))));
+  public Command getCosmicConverter(boolean isInner) {
+    Optional<DriverStation.Alliance> alliance1 = DriverStation.getAlliance();
+    Translation2d cosmicConverter = new Translation2d();
+    if (alliance1.isPresent()) {
+      if (alliance1.get() == DriverStation.Alliance.Blue) {
+        if (isInner) {
+          cosmicConverter =
+              new Translation2d(Units.inchesToMeters(4.0), Units.inchesToMeters(196.125));
+        } else {
+          cosmicConverter =
+              new Translation2d(Units.inchesToMeters(4.0), Units.inchesToMeters(20.5));
+        }
       }
-      else{cosmicConverter = null;
-          System.out.println("no alliance detected: likely causing many errors");}
+      if (alliance1.get() == DriverStation.Alliance.Red) {
+        if (isInner) {
+          cosmicConverter =
+              new Translation2d(Units.inchesToMeters(644.0), Units.inchesToMeters(196.125));
+        } else {
+          cosmicConverter =
+              new Translation2d(Units.inchesToMeters(644.0), Units.inchesToMeters(20.5));
+        }
+      }
 
+      Rotation2d heading = drivetrain.getState().Pose.getRotation();
+
+      // shooter offset in robot frame (meters)
+      double shooterOffsetX = 0.20; // forward
+      double shooterOffsetY = -0.10; // right
+
+      // convert to field frame
+      double shooterX =
+          drivetrain.getState().Pose.getX()
+              + shooterOffsetX * heading.getCos()
+              - shooterOffsetY * heading.getSin();
+
+      double shooterY =
+          drivetrain.getState().Pose.getY()
+              + shooterOffsetX * heading.getSin()
+              + shooterOffsetY * heading.getCos();
+
+      // compute target angle
+      Rotation2d aimAngle =
+          new Rotation2d(
+              Math.atan2(cosmicConverter.getY() - shooterY, cosmicConverter.getX() - shooterX));
+
+      return Commands.runOnce(
+          () ->
+              drivetrain.setControl(
+                  m_faceAngle.withVelocityX(0.1).withVelocityY(0.1).withTargetDirection(aimAngle)));
+    } else {
+      cosmicConverter = null;
+      System.out.println("no alliance detected: likely causing many errors");
+      return null;
     }
+  }
 }

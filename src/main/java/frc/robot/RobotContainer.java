@@ -15,7 +15,6 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.math.util.Units.*;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -79,8 +78,7 @@ public class RobotContainer {
     controller
         .rightTrigger()
         .whileTrue(
-            Commands.run(() -> shooter.shoot(1))
-                .alongWith(Commands.run(() -> intake.intake())));
+            Commands.run(() -> shooter.shoot(1)).alongWith(Commands.run(() -> intake.intake())));
     // Stop everything
     controller
         .a()
@@ -93,10 +91,8 @@ public class RobotContainer {
             .withVelocityX(controller.getLeftY())
             .withVelocityY(controller.getLeftX())
             .withRotationalRate(controller.getRightX()))); // Drive counterclockwise with negative X
-
-
-
   }
+
 
   public Command getAutonomousCommand() {
     return Commands.print("No autonomous command configured");
