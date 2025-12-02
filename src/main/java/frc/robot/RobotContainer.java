@@ -5,6 +5,7 @@
 package frc.robot;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
+import com.ctre.phoenix6.swerve.SwerveRequest;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -14,6 +15,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.math.util.Units.*;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -68,19 +70,32 @@ public class RobotContainer {
     // controller.leftBumper().onTrue(superstructure.toggleFarHigh());
     // controller.rightBumper().onTrue(superstructure.toggleLowScore());
     // controller.rightStick().onTrue(superstructure.toggleIntake());
+
+    // Pivot to angle
     controller.povUp().whileTrue((Commands.run(() -> pivot.setPivotAngleRot(0.17))));
-    controller.povDown().onTrue(superstructure.incPivDegDown());
+    // Zero pivot
     controller.povLeft().onTrue(Commands.runOnce(() -> pivot.zeroPivot()));
+    // Intake and shoot
     controller
         .rightTrigger()
         .whileTrue(
             Commands.run(() -> shooter.shoot(1))
-                .alongWith(Commands.run(() -> intake.runKicker(-0.3)))
-                .alongWith(Commands.run(() -> intake.runInitial(-0.5))));
-    // controller.b().whileTrue((Commands.run(() -> intake.runInitial(-0.5))));
+                .alongWith(Commands.run(() -> intake.intake())));
+    // Stop everything
     controller
         .a()
-        .onTrue(Commands.run(() -> intake.stopKicker()).andThen(() -> shooter.stopShooter()));
+        .onTrue(Commands.run(() -> intake.stopIntake()).andThen(() -> shooter.stopShooter()));
+    // Intake
+    controller.leftTrigger().whileTrue(Commands.run(() -> intake.intake()));
+    // Drive
+    drivetrain.setControl(
+        (new SwerveRequest.FieldCentric()
+            .withVelocityX(controller.getLeftY())
+            .withVelocityY(controller.getLeftX())
+            .withRotationalRate(controller.getRightX()))); // Drive counterclockwise with negative X
+
+
+
   }
 
   public Command getAutonomousCommand() {

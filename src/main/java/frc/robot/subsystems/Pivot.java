@@ -5,11 +5,15 @@ import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.swerve.SwerveModule;
+import com.ctre.phoenix6.swerve.SwerveRequest;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.commands.DrivetrainCommand;
 import frc.robot.commands.PivotCommand;
@@ -144,6 +148,11 @@ public class Pivot extends SubsystemBase {
 
     return currentAngle;
   }
+
+    private final SwerveRequest.FieldCentricFacingAngle m_faceAngle =
+            new SwerveRequest.FieldCentricFacingAngle()
+                    .withDriveRequestType(
+                            SwerveModule.DriveRequestType.OpenLoopVoltage); // Or OpenLoopDutyCycle
 
   public static int getAlliance() {
     Optional<DriverStation.Alliance> alliance = DriverStation.getAlliance();
@@ -352,4 +361,34 @@ public class Pivot extends SubsystemBase {
       return PivotCommand.Position.OUTER_HIGH_SHOOT;
     }
   }
+  public Command getCosmicConverter(boolean isInner){
+      Optional<DriverStation.Alliance> alliance1 = DriverStation.getAlliance();
+      Translation2d cosmicConverter = new Translation2d();
+      if (alliance1.isPresent()) {
+          if (alliance1.get() == DriverStation.Alliance.Blue) {
+              if (isInner) {
+                  cosmicConverter = new Translation2d(Units.inchesToMeters(4.0), Units.inchesToMeters(196.125));
+              }
+              else{cosmicConverter = new Translation2d(Units.inchesToMeters(4.0), Units.inchesToMeters(20.5));}
+          }
+          if (alliance1.get() == DriverStation.Alliance.Red) {
+              if (isInner) {cosmicConverter = new Translation2d(Units.inchesToMeters(644.0), Units.inchesToMeters(196.125));}
+              else{cosmicConverter = new Translation2d(Units.inchesToMeters(644.0), Units.inchesToMeters(20.5));}
+          }
+
+          drivetrain.setControl(
+                  m_faceAngle
+                          .withVelocityX(0.1)
+                          .withVelocityY(0.1)
+                          // Set the desired direction in Radians
+                          .withTargetDirection(
+                                  new Rotation2d(
+                                          Math.atan2(
+                                                  cosmicConverter.getX() - drivetrain.getState().Pose.getX(),
+                                                  cosmicConverter.getY() - drivetrain.getState().Pose.getY()))));
+      }
+      else{cosmicConverter = null;
+          System.out.println("no alliance detected: likely causing many errors");}
+
+    }
 }
