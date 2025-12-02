@@ -64,12 +64,23 @@ public class RobotContainer {
 
   private void configureBindings() {
     controller.leftTrigger().onTrue(superstructure.toggleCloseHigh());
-    controller.rightTrigger().onTrue(superstructure.action());
-    controller.leftBumper().onTrue(superstructure.toggleFarHigh());
-    controller.rightBumper().onTrue(superstructure.toggleLowScore());
-    controller.rightStick().onTrue(superstructure.toggleIntake());
-    controller.povUp().onTrue(superstructure.incPivDegUp());
+    // controller.rightTrigger().onTrue(superstructure.action());
+    // controller.leftBumper().onTrue(superstructure.toggleFarHigh());
+    // controller.rightBumper().onTrue(superstructure.toggleLowScore());
+    // controller.rightStick().onTrue(superstructure.toggleIntake());
+    controller.povUp().whileTrue((Commands.run(() -> pivot.setPivotAngleRot(0.17))));
     controller.povDown().onTrue(superstructure.incPivDegDown());
+    controller.povLeft().onTrue(Commands.runOnce(() -> pivot.zeroPivot()));
+    controller
+        .rightTrigger()
+        .whileTrue(
+            Commands.run(() -> shooter.shoot(1))
+                .alongWith(Commands.run(() -> intake.runKicker(-0.3)))
+                .alongWith(Commands.run(() -> intake.runInitial(-0.5))));
+    // controller.b().whileTrue((Commands.run(() -> intake.runInitial(-0.5))));
+    controller
+        .a()
+        .onTrue(Commands.run(() -> intake.stopKicker()).andThen(() -> shooter.stopShooter()));
   }
 
   public Command getAutonomousCommand() {

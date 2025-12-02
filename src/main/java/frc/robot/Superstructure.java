@@ -48,6 +48,7 @@ public class Superstructure {
             setState(SuperState.IDLE);
           } else {
             setState(SuperState.READY_CLOSE_HIGH);
+            System.out.println("Toggle close high");
           }
         });
   }
@@ -90,11 +91,20 @@ public class Superstructure {
         () -> {
           switch (state) {
             case READY_CLOSE_HIGH:
+              incrementPivDegreeUp();
+              System.out.println("pivot up");
             case READY_FAR_HIGH:
+              incrementPivDegreeUp();
+              System.out.println("pivot up");
             case READY_LOW_SCORE:
+              incrementPivDegreeUp();
+              System.out.println("pivot up");
             case INTAKE:
+              incrementPivDegreeUp();
+              System.out.println("pivot up");
             case IDLE:
               incrementPivDegreeUp();
+              System.out.println("pivot up");
           }
         });
   }
@@ -109,6 +119,7 @@ public class Superstructure {
             case INTAKE:
             case IDLE:
               incrementPivDegreeDown();
+              System.out.println("Pivot down");
           }
         });
   }

@@ -71,8 +71,8 @@ public class Shooter extends SubsystemBase {
 
   // Velocity is rotations per second of motor accounting for SensorToMechanismRatio
   public void shoot(double velocity) {
-    mTopShooter.setControl(new DutyCycleOut(velocity));
-    mBottomShooter.setControl(new DutyCycleOut(-velocity));
+    mTopShooter.setControl(new DutyCycleOut(-velocity));
+    mBottomShooter.setControl(new DutyCycleOut(velocity));
   }
 
   public void stopShooter() {

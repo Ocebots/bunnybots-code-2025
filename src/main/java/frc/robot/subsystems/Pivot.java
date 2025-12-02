@@ -4,7 +4,6 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -89,18 +88,23 @@ public class Pivot extends SubsystemBase {
     leftPivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     rightPivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
-    leftPivotConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-    ;
+    // leftPivotConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
     mPivotLeft.getConfigurator().apply(leftPivotConfig);
     mPivotRight.getConfigurator().apply(rightPivotConfig);
 
-    follower = new Follower(CANMappings.K_PIVOT_LEFT_ID, true);
+    // follower = new Follower(CANMappings.K_PIVOT_LEFT_ID, false);
   }
 
   public void setPivotAngle(Rotation2d angleSetpoint) {
     mPivotLeft.setControl(new MotionMagicVoltage(angleSetpoint.getRotations()));
     mPivotRight.setControl(follower);
+  }
+
+  public void setPivotAngleRot(double rotation) {
+    mPivotLeft.setControl(new MotionMagicVoltage(-rotation));
+    mPivotRight.setControl(new MotionMagicVoltage(rotation));
+    // mPivotRight.setControl(follower);
   }
 
   public void zeroPivot() {
@@ -122,8 +126,10 @@ public class Pivot extends SubsystemBase {
     // location: the cosmic converter we're shooting on - 1 is blue inner, 2 is blue outer, 3 is red
     // inner, 4 is red outer
     // want 5-8 calibrations (distance, angle)
+    // in,
     InterpolatingDoubleTreeMap map = new InterpolatingDoubleTreeMap();
-    map.put(0.0, 0.0);
+    map.put(59.0, 0.18);
+    map.put(77.0, 0.0);
 
     double distance =
         Math.sqrt(
