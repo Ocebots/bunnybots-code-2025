@@ -86,13 +86,20 @@ public class RobotContainer {
     // Intake
     controller.leftTrigger().whileTrue(Commands.run(() -> intake.intake()));
     // Drive
-    drivetrain.setControl(
-        (new SwerveRequest.FieldCentric()
-            .withVelocityX(controller.getLeftY())
-            .withVelocityY(controller.getLeftX())
-            .withRotationalRate(controller.getRightX()))); // Drive counterclockwise with negative X
+    drivetrain.setDefaultCommand(
+        Commands.run(
+            () ->
+                drivetrain.setControl(
+                    (new SwerveRequest.FieldCentric()
+                        .withVelocityX(controller.getLeftY())
+                        .withVelocityY(controller.getLeftX())
+                        .withRotationalRate(
+                            controller.getRightX()))))); // Drive counterclockwise with negative X
+    // auto align with inner cosmic converter
+    controller.rightBumper().toggleOnTrue(pivot.getCosmicConverter(true));
+    // auto align with outer cosmic converter
+    controller.rightBumper().toggleOnTrue(pivot.getCosmicConverter(false));
   }
-
 
   public Command getAutonomousCommand() {
     return Commands.print("No autonomous command configured");
