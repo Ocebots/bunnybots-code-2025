@@ -18,7 +18,6 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.math.util.Units.*;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -42,7 +41,7 @@ public class RobotContainer {
   /* Setting up bindings for necessary control of the swerve drive platform */
   private final SwerveRequest.FieldCentric drive =
       new SwerveRequest.FieldCentric()
-          .withDeadband(MaxSpeed * 0.1)
+          .withDeadband(MaxSpeed * 0.50)
           .withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
           .withDriveRequestType(
               SwerveModule.DriveRequestType
@@ -53,12 +52,10 @@ public class RobotContainer {
   private final Telemetry logger = new Telemetry(MaxSpeed);
 
   private CommandXboxController controller = new CommandXboxController(0);
-  private CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+  private CommandSwerveDrivetrain drivetrain2 = TunerConstants.createDrivetrain();
   private Intake intake = new Intake();
   private Pivot pivot = new Pivot();
   private Shooter shooter = new Shooter();
-  private final Superstructure superstructure =
-      new Superstructure(intake, pivot, shooter, drivetrain);
   public static Pigeon2 pigeon2 = new Pigeon2(CANMappings.PIGEON_CAN_ID);
   Translation2d m_frontLeftLocation =
       new Translation2d(Units.inchesToMeters(10.875), Units.inchesToMeters(10.875));
@@ -74,10 +71,10 @@ public class RobotContainer {
               m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation),
           pigeon2.getRotation2d(),
           new SwerveModulePosition[] {
-            drivetrain.getModule(0).getPosition(true),
-            drivetrain.getModule(1).getPosition(true),
-            drivetrain.getModule(2).getPosition(true),
-            drivetrain.getModule(3).getPosition(true)
+            drivetrain2.getModule(0).getPosition(true),
+            drivetrain2.getModule(1).getPosition(true),
+            drivetrain2.getModule(2).getPosition(true),
+            drivetrain2.getModule(3).getPosition(true)
           },
           new Pose2d(0.0, 0.0, new Rotation2d()));
   static Field2d m_field = new Field2d();
@@ -90,23 +87,8 @@ public class RobotContainer {
   private void configureBindings() {
     final SwerveRequest.Idle idle = new SwerveRequest.Idle();
     RobotModeTriggers.disabled()
-        .whileTrue(drivetrain.applyRequest(() -> idle).ignoringDisable(true));
+        .whileTrue(drivetrain2.applyRequest(() -> idle).ignoringDisable(true));
 
-    drivetrain.setDefaultCommand(
-        // Drivetrain will execute this command periodically
-        drivetrain.applyRequest(
-            () ->
-                drive
-                    .withVelocityX(
-                        -controller.getLeftY()
-                            * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(
-                        -controller.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(
-                        -controller.getRightX()
-                            * MaxAngularRate) // Drive counterclockwise with negative X (left)
-            ));
-    controller.leftTrigger().onTrue(superstructure.toggleCloseHigh());
     // controller.rightTrigger().onTrue(superstructure.action());
     // controller.leftBumper().onTrue(superstructure.toggleFarHigh());
     // controller.rightBumper().onTrue(superstructure.toggleLowScore());
@@ -128,14 +110,14 @@ public class RobotContainer {
                 () ->
                     pivot.setPivotAngleRot(
                         map.get(
-                            drivetrain
+                            drivetrain2
                                 .getState()
                                 .Pose
                                 .getTranslation()
                                 .getDistance(pivot.getCosmicConverterTranslation(false)))))));
 
     // Pivot default command
-    pivot.setDefaultCommand(Commands.run(() -> pivot.setPivotAngleRot(0.0)));
+    controller.povUp().whileFalse(Commands.run(()-> pivot.setPivotAngleRot(0.0)));
     // Zero pivot
     controller.povLeft().onTrue(Commands.runOnce(() -> pivot.zeroPivot()));
     // Shoot
@@ -145,22 +127,22 @@ public class RobotContainer {
             Commands.run(() -> shooter.shoot(1))
                 .alongWith(Commands.run(() -> intake.runKicker(-0.3))));
     // Shooter default command
-    shooter.setDefaultCommand(Commands.run(() -> shooter.stopShooter()));
+    //shooter.setDefaultCommand(Commands.run(() -> shooter.stopShooter()));
 
     // Intake
     controller.leftTrigger().whileTrue(Commands.run(() -> intake.intake()));
-    intake.setDefaultCommand(Commands.run(() -> intake.stopIntake()));
+    //intake.setDefaultCommand(Commands.run(() -> intake.stopIntake()));
 
     // Drivetrain default command
-    drivetrain.setDefaultCommand(
+    drivetrain2.setDefaultCommand(
         Commands.run(
             () ->
-                drivetrain.setControl(
+                drivetrain2.setControl(
                     (new SwerveRequest.FieldCentric()
-                        .withVelocityX(controller.getLeftY())
-                        .withVelocityY(controller.getLeftX())
+                        .withVelocityX(controller.getLeftY()*2.5)
+                        .withVelocityY(controller.getLeftX()*2.5)
                         .withRotationalRate(
-                            controller.getRightX()))))); // Drive counterclockwise with negative X
+                            controller.getRightX()*2.5))), drivetrain2)); // Drive counterclockwise with negative X
     // auto align with inner cosmic converter
     controller
         .rightBumper()
@@ -172,13 +154,12 @@ public class RobotContainer {
                         (() ->
                             pivot.setPivotAngleRot(
                                 map.get(
-                                    drivetrain
+                                    drivetrain2
                                         .getState()
                                         .Pose
                                         .getTranslation()
                                         .getDistance(
                                             pivot.getCosmicConverterTranslation(true))))))));
-
     // auto align with outer cosmic converter
     controller
         .rightBumper()
@@ -190,7 +171,7 @@ public class RobotContainer {
                         (() ->
                             pivot.setPivotAngleRot(
                                 map.get(
-                                    drivetrain
+                                    drivetrain2
                                         .getState()
                                         .Pose
                                         .getTranslation()
@@ -200,10 +181,15 @@ public class RobotContainer {
     controller.povDown().toggleOnTrue(Commands.run(() -> intake.outtake()));
     // Low score
     controller.povRight().toggleOnTrue(Commands.run(() -> pivot.setPivotAngleRot(0.0)));
-    drivetrain.registerTelemetry(logger::telemeterize);
+    drivetrain2.registerTelemetry(logger::telemeterize);
   }
 
   public Command getAutonomousCommand() {
     return Commands.print("No autonomous command configured");
   }
+
+    public static void zeroPigeon() {
+        Pigeon2 pigeon = new Pigeon2(CANMappings.PIGEON_CAN_ID);
+        pigeon.reset();
+    }
 }
