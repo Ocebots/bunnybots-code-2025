@@ -423,4 +423,30 @@ public class Pivot extends SubsystemBase {
       return null;
     }
   }
+
+  public Translation2d getCosmicConverterTranslation(boolean isInner) {
+    Optional<DriverStation.Alliance> alliance1 = DriverStation.getAlliance();
+    Translation2d cosmicConverter = new Translation2d();
+    if (alliance1.isPresent()) {
+      if (alliance1.get() == DriverStation.Alliance.Blue) {
+        if (isInner) {
+          cosmicConverter =
+              new Translation2d(Units.inchesToMeters(4.0), Units.inchesToMeters(196.125));
+        } else {
+          cosmicConverter =
+              new Translation2d(Units.inchesToMeters(4.0), Units.inchesToMeters(20.5));
+        }
+      }
+      if (alliance1.get() == DriverStation.Alliance.Red) {
+        if (isInner) {
+          cosmicConverter =
+              new Translation2d(Units.inchesToMeters(644.0), Units.inchesToMeters(196.125));
+        } else {
+          cosmicConverter =
+              new Translation2d(Units.inchesToMeters(644.0), Units.inchesToMeters(20.5));
+        }
+      }
+    }
+    return cosmicConverter;
+  }
 }

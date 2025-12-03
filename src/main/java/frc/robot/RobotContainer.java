@@ -113,14 +113,14 @@ public class RobotContainer {
     // controller.rightStick().onTrue(superstructure.toggleIntake());
 
     InterpolatingDoubleTreeMap map = new InterpolatingDoubleTreeMap();
-    map.put(59.0, 0.18);
-    map.put(76.5, 0.155);
-    map.put(96.5, 0.142);
-    map.put(125.5, 0.13);
-    map.put(169.5, 0.12);
-    map.put(210.5, 0.118);
+    map.put(Units.inchesToMeters(59.0), 0.18);
+    map.put(Units.inchesToMeters(76.5), 0.155);
+    map.put(Units.inchesToMeters(96.5), 0.142);
+    map.put(Units.inchesToMeters(125.5), 0.13);
+    map.put(Units.inchesToMeters(169.5), 0.12);
+    map.put(Units.inchesToMeters(210.5), 0.118);
 
-    // Pivot to angle
+    // Pivot to angle based off distance
     controller
         .povUp()
         .whileTrue(
@@ -132,24 +132,26 @@ public class RobotContainer {
                                 .getState()
                                 .Pose
                                 .getTranslation()
-                                .getDistance(new Translation2d()))))));
-    controller.povUp().whileFalse(Commands.run(() -> pivot.setPivotAngleRot(0.0)));
+                                .getDistance(pivot.getCosmicConverterTranslation(false)))))));
+
+    // Pivot default command
+    pivot.setDefaultCommand(Commands.run(() -> pivot.setPivotAngleRot(0.0)));
     // Zero pivot
     controller.povLeft().onTrue(Commands.runOnce(() -> pivot.zeroPivot()));
-    // Intake and shoot
+    // Shoot
     controller
         .rightTrigger()
         .whileTrue(
-            Commands.run(() -> shooter.shoot(1)).alongWith(Commands.run(() -> intake.intake())));
-    // Stop everything
-    controller.rightTrigger().whileFalse(Commands.run(() -> intake.stopIntake()));
-    controller.rightTrigger().whileFalse((Commands.run(() -> shooter.stopShooter())));
-    // Intake
+            Commands.run(() -> shooter.shoot(1))
+                .alongWith(Commands.run(() -> intake.runKicker(-0.3))));
+    // Shooter default command
+    shooter.setDefaultCommand(Commands.run(()->shooter.stopShooter()));
 
+    // Intake
     controller.leftTrigger().whileTrue(Commands.run(() -> intake.intake()));
-    shooter.setDefaultCommand(Commands.run(() -> shooter.stopShooter()));
     intake.setDefaultCommand(Commands.run(() -> intake.stopIntake()));
-    // Drive
+
+    // Drivetrain default command
     drivetrain.setDefaultCommand(
         Commands.run(
             () ->
@@ -160,9 +162,40 @@ public class RobotContainer {
                         .withRotationalRate(
                             controller.getRightX()))))); // Drive counterclockwise with negative X
     // auto align with inner cosmic converter
-    controller.rightBumper().toggleOnTrue(pivot.getCosmicConverter(true));
+    controller
+        .rightBumper()
+        .toggleOnTrue(
+            pivot
+                .getCosmicConverter(true)
+                .alongWith(
+                    Commands.run(
+                        (() ->
+                            pivot.setPivotAngleRot(
+                                map.get(
+                                    drivetrain
+                                        .getState()
+                                        .Pose
+                                        .getTranslation()
+                                        .getDistance(
+                                            pivot.getCosmicConverterTranslation(true))))))));
+
     // auto align with outer cosmic converter
-    controller.rightBumper().toggleOnTrue(pivot.getCosmicConverter(false));
+    controller
+        .rightBumper()
+        .toggleOnTrue(
+            pivot
+                .getCosmicConverter(false)
+                .alongWith(
+                    Commands.run(
+                        (() ->
+                            pivot.setPivotAngleRot(
+                                map.get(
+                                    drivetrain
+                                        .getState()
+                                        .Pose
+                                        .getTranslation()
+                                        .getDistance(
+                                            pivot.getCosmicConverterTranslation(false))))))));
     drivetrain.registerTelemetry(logger::telemeterize);
   }
 
