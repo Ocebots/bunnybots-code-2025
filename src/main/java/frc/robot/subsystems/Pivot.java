@@ -32,6 +32,7 @@ public class Pivot extends SubsystemBase {
   protected TalonFX mPivotRight;
   protected Follower follower;
   protected CommandSwerveDrivetrain drivetrain;
+  InterpolatingDoubleTreeMap map1 = new InterpolatingDoubleTreeMap();
 
   private double currentAngle;
 
@@ -106,6 +107,7 @@ public class Pivot extends SubsystemBase {
     mPivotRight.setControl(follower);
   }
 
+
   public void setPivotAngleRot(double rotation) {
     mPivotLeft.setControl(new MotionMagicVoltage(-rotation));
     mPivotRight.setControl(new MotionMagicVoltage(rotation));
@@ -127,6 +129,8 @@ public class Pivot extends SubsystemBase {
         <= PivotConfig.K_PIVOT_ANGLE_TOLERANCE;
   }
 
+
+
   public Rotation2d getHighAngle(Translation2d location) {
     // location: the cosmic converter we're shooting on - 1 is blue inner, 2 is blue outer, 3 is red
     // inner, 4 is red outer
@@ -134,7 +138,11 @@ public class Pivot extends SubsystemBase {
     // in,
     InterpolatingDoubleTreeMap map = new InterpolatingDoubleTreeMap();
     map.put(59.0, 0.18);
-    map.put(77.0, 0.0);
+    map.put(76.5, 0.155);
+    map.put(96.5, 0.142);
+    map.put(125.5, 0.13);
+    map.put(169.5,0.12);
+    map.put(210.5,0.118);
 
     double distance =
         Math.sqrt(
