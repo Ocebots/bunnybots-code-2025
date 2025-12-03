@@ -71,17 +71,28 @@ public class RobotContainer {
     // controller.rightBumper().onTrue(superstructure.toggleLowScore());
     // controller.rightStick().onTrue(superstructure.toggleIntake());
 
-      InterpolatingDoubleTreeMap map = new InterpolatingDoubleTreeMap();
-      map.put(59.0, 0.18);
-      map.put(76.5, 0.155);
-      map.put(96.5, 0.142);
-      map.put(125.5, 0.13);
-      map.put(169.5,0.12);
-      map.put(210.5,0.118);
+    InterpolatingDoubleTreeMap map = new InterpolatingDoubleTreeMap();
+    map.put(59.0, 0.18);
+    map.put(76.5, 0.155);
+    map.put(96.5, 0.142);
+    map.put(125.5, 0.13);
+    map.put(169.5, 0.12);
+    map.put(210.5, 0.118);
 
     // Pivot to angle
-    controller.povUp().whileTrue((Commands.run(() -> pivot.setPivotAngleRot(map.get(drivetrain.getState().Pose.getTranslation().getDistance(new Translation2d()))))));
-    controller.povUp().whileFalse(Commands.run(()->pivot.setPivotAngleRot(0.0)));
+    controller
+        .povUp()
+        .whileTrue(
+            (Commands.run(
+                () ->
+                    pivot.setPivotAngleRot(
+                        map.get(
+                            drivetrain
+                                .getState()
+                                .Pose
+                                .getTranslation()
+                                .getDistance(new Translation2d()))))));
+    controller.povUp().whileFalse(Commands.run(() -> pivot.setPivotAngleRot(0.0)));
     // Zero pivot
     controller.povLeft().onTrue(Commands.runOnce(() -> pivot.zeroPivot()));
     // Intake and shoot
@@ -90,17 +101,15 @@ public class RobotContainer {
         .whileTrue(
             Commands.run(() -> shooter.shoot(1)).alongWith(Commands.run(() -> intake.intake())));
     // Stop everything
-    controller
-        .rightTrigger()
-        .whileFalse(Commands.run(() -> intake.stopIntake()));
+    controller.rightTrigger().whileFalse(Commands.run(() -> intake.stopIntake()));
     controller.rightTrigger().whileFalse((Commands.run(() -> shooter.stopShooter())));
     // Intake
 
-      controller.leftTrigger().whileTrue(Commands.run(() -> intake.intake()));
-      shooter.setDefaultCommand(Commands.run(()->shooter.stopShooter()));
-      intake.setDefaultCommand(Commands.run(()->intake.stopIntake()));
+    controller.leftTrigger().whileTrue(Commands.run(() -> intake.intake()));
+    shooter.setDefaultCommand(Commands.run(() -> shooter.stopShooter()));
+    intake.setDefaultCommand(Commands.run(() -> intake.stopIntake()));
     // Drive
-   drivetrain.setDefaultCommand(
+    drivetrain.setDefaultCommand(
         Commands.run(
             () ->
                 drivetrain.setControl(
