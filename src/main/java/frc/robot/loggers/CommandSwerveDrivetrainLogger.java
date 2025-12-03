@@ -13,6 +13,5 @@ public class CommandSwerveDrivetrainLogger extends ClassSpecificLogger<CommandSw
 
   @Override
   protected void update(EpilogueBackend backend, CommandSwerveDrivetrain drivetrain) {
-     backend.log(drivetrain.getState());
   }
 }
