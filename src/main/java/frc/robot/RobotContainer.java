@@ -196,6 +196,10 @@ public class RobotContainer {
                                         .getTranslation()
                                         .getDistance(
                                             pivot.getCosmicConverterTranslation(false))))))));
+    // Outtake
+    controller.povDown().toggleOnTrue(Commands.run(() -> intake.outtake()));
+    // Low score
+    controller.povRight().toggleOnTrue(Commands.run(() -> pivot.setPivotAngleRot(0.0)));
     drivetrain.registerTelemetry(logger::telemeterize);
   }
 

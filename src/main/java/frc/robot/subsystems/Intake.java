@@ -80,6 +80,11 @@ public class Intake extends SubsystemBase {
     mKickerIntake.setControl(new DutyCycleOut(-0.3));
   }
 
+  public void outtake() {
+    mInitialIntake.setControl(new DutyCycleOut(0.5));
+    mKickerIntake.setControl(new DutyCycleOut(0.3));
+  }
+
   public void runKicker(double velocity) {
     mKickerIntake.setControl(new DutyCycleOut(velocity));
   }
