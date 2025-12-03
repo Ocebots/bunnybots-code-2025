@@ -4,7 +4,10 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.*;
+
 import com.ctre.phoenix6.hardware.Pigeon2;
+import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -20,6 +23,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.config.CANMappings;
 import frc.robot.config.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -29,6 +33,25 @@ import frc.robot.subsystems.Shooter;
 
 @Logged
 public class RobotContainer {
+  private double MaxSpeed =
+      TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
+  private double MaxAngularRate =
+      RotationsPerSecond.of(0.75)
+          .in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
+
+  /* Setting up bindings for necessary control of the swerve drive platform */
+  private final SwerveRequest.FieldCentric drive =
+      new SwerveRequest.FieldCentric()
+          .withDeadband(MaxSpeed * 0.1)
+          .withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+          .withDriveRequestType(
+              SwerveModule.DriveRequestType
+                  .OpenLoopVoltage); // Use open-loop control for drive motors
+  private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
+  private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
+
+  private final Telemetry logger = new Telemetry(MaxSpeed);
+
   private CommandXboxController controller = new CommandXboxController(0);
   private CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
   private Intake intake = new Intake();
@@ -65,6 +88,24 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
+    final SwerveRequest.Idle idle = new SwerveRequest.Idle();
+    RobotModeTriggers.disabled()
+        .whileTrue(drivetrain.applyRequest(() -> idle).ignoringDisable(true));
+
+    drivetrain.setDefaultCommand(
+        // Drivetrain will execute this command periodically
+        drivetrain.applyRequest(
+            () ->
+                drive
+                    .withVelocityX(
+                        -controller.getLeftY()
+                            * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(
+                        -controller.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(
+                        -controller.getRightX()
+                            * MaxAngularRate) // Drive counterclockwise with negative X (left)
+            ));
     controller.leftTrigger().onTrue(superstructure.toggleCloseHigh());
     // controller.rightTrigger().onTrue(superstructure.action());
     // controller.leftBumper().onTrue(superstructure.toggleFarHigh());
@@ -122,6 +163,7 @@ public class RobotContainer {
     controller.rightBumper().toggleOnTrue(pivot.getCosmicConverter(true));
     // auto align with outer cosmic converter
     controller.rightBumper().toggleOnTrue(pivot.getCosmicConverter(false));
+    drivetrain.registerTelemetry(logger::telemeterize);
   }
 
   public Command getAutonomousCommand() {
