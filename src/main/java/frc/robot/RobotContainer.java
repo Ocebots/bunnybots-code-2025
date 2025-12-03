@@ -145,7 +145,7 @@ public class RobotContainer {
             Commands.run(() -> shooter.shoot(1))
                 .alongWith(Commands.run(() -> intake.runKicker(-0.3))));
     // Shooter default command
-    shooter.setDefaultCommand(Commands.run(()->shooter.stopShooter()));
+    shooter.setDefaultCommand(Commands.run(() -> shooter.stopShooter()));
 
     // Intake
     controller.leftTrigger().whileTrue(Commands.run(() -> intake.intake()));
