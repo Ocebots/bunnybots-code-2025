@@ -83,6 +83,8 @@ public class RobotContainer {
     configureBindings();
   }
 
+  @Logged Pose2d estimatedPosition = m_odometry.getEstimatedPosition();
+
   private void configureBindings() {
     final SwerveRequest.Idle idle = new SwerveRequest.Idle();
     RobotModeTriggers.disabled()
@@ -109,43 +111,53 @@ public class RobotContainer {
                     .withVelocityX(
                         -controller.getLeftY()
                             * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(
-                        -controller.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+                    .withVelocityY(-controller.getLeftX() * MaxSpeed) // Drive left with negative X
                     .withRotationalRate(
                         -controller.getRightX()
-                            * MaxAngularRate))); // Drive counterclockwise with negative X (left)
+                            * MaxAngularRate))); // Drive counterclockwise with negative X
+
     // Testing - Commented out until need to be used
     // Pivot to angle based off distance
-//    controller
-//        .povUp()
-//        .whileTrue(
-//            (Commands.run(
-//                () ->
-//                    pivot.setPivotAngleRot(
-//                        map.get(
-//                            drivetrain
-//                                .getState()
-//                                .Pose
-//                                .getTranslation()
-//                                .getDistance(pivot.getCosmicConverterTranslation(false)))))));
-//
-//    // Zero pivot
-//    controller.povLeft().onTrue(Commands.runOnce(() -> pivot.zeroPivot()));
-//    // Shoot
-//    controller
-//        .rightTrigger()
-//        .whileTrue(
-//            Commands.run(() -> shooter.shoot()).alongWith(Commands.run(() -> intake.runKicker())));
-//    // Intake
-//    controller.leftTrigger().whileTrue(Commands.run(() -> intake.intake()));
+    controller
+        .povUp()
+        .whileTrue(
+            (Commands.run(
+                () ->
+                    pivot.setPivotAngleRot(
+                        map.get(
+                            drivetrain
+                                .getState()
+                                .Pose
+                                .getTranslation()
+                                .getDistance(pivot.getCosmicConverterTranslation(false)))))));
+    //      controller
+    //              .povUp()
+    //              .whileTrue(
+    //                      (Commands.run(
+    //                              () ->
+    //                                      pivot.setPivotAngleRot(
+    //                                              map.get(Units.inchesToMeters(132))))));
+
+    // Zero pivot
+    controller.povLeft().onTrue(Commands.runOnce(() -> pivot.zeroPivot()));
+    //
+    //
+    // Shoot
+    controller
+        .rightTrigger()
+        .whileTrue(
+            Commands.run(() -> shooter.shoot()).alongWith(Commands.run(() -> intake.intake())));
+    // Intake
+    //    controller.leftTrigger().whileTrue(Commands.run(() -> intake.intake()));
 
     // Specialized commands
     // auto align with inner cosmic converter and raise pivot
-    controller.leftBumper().toggleOnTrue(pivot.getCosmicConverter(controller.rightTrigger(), true));
-    // auto align with outer cosmic converter
-    controller
-        .leftTrigger()
-        .toggleOnTrue(pivot.getCosmicConverter(controller.rightTrigger(), false));
+    //    controller.leftBumper().toggleOnTrue(pivot.getCosmicConverter(controller.rightTrigger(),
+    // true));
+    //    // auto align with outer cosmic converter
+    //    controller
+    //        .leftTrigger()
+    //        .toggleOnTrue(pivot.getCosmicConverter(controller.rightTrigger(), false));
     // Intake
     controller.leftStick().toggleOnTrue(Commands.run(() -> intake.intake()));
     // Outtake

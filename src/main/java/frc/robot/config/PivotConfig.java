@@ -10,7 +10,7 @@ public class PivotConfig {
   public static final double K_LEFT_AND_RIGHT_PIVOT_TARGET_ACCELERATION = 500.0;
   public static final double K_LEFT_AND_RIGHT_PIVOT_JERK = 0.0;
 
-  public static final double K_LEFT_AND_RIGHT_PIVOT_P = 10;
+  public static final double K_LEFT_AND_RIGHT_PIVOT_P = 14;
   public static final double K_LEFT_AND_RIGHT_PIVOT_I = 0.0;
   public static final double K_LEFT_AND_RIGHT_PIVOT_D = 0.0;
   public static final double K_LEFT_AND_RIGHT_PIVOT_S = 0.0;

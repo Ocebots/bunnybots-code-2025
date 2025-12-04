@@ -176,7 +176,7 @@ public class Pivot extends SubsystemBase {
 
       // shooter offset in robot frame (meters)
       double shooterOffsetX = 0.0; // forward
-      double shooterOffsetY = -0.10; // right
+      double shooterOffsetY = -1; // right
 
       // convert to field frame
       double shooterX =
@@ -197,10 +197,7 @@ public class Pivot extends SubsystemBase {
       return Commands.runOnce(
               () ->
                   drivetrain.setControl(
-                      m_faceAngle
-                          .withVelocityX(0.1)
-                          .withVelocityY(0.1)
-                          .withTargetDirection(aimAngle)))
+                      m_faceAngle.withVelocityX(2).withVelocityY(2).withTargetDirection(aimAngle)))
           .alongWith(
               Commands.runOnce(
                   () ->
