@@ -117,7 +117,7 @@ public class RobotContainer {
                                 .getDistance(pivot.getCosmicConverterTranslation(false)))))));
 
     // Pivot default command
-    controller.povUp().whileFalse(Commands.run(()-> pivot.setPivotAngleRot(0.0)));
+    controller.povUp().whileFalse(Commands.run(() -> pivot.setPivotAngleRot(0.0)));
     // Zero pivot
     controller.povLeft().onTrue(Commands.runOnce(() -> pivot.zeroPivot()));
     // Shoot
@@ -127,11 +127,11 @@ public class RobotContainer {
             Commands.run(() -> shooter.shoot(1))
                 .alongWith(Commands.run(() -> intake.runKicker(-0.3))));
     // Shooter default command
-    //shooter.setDefaultCommand(Commands.run(() -> shooter.stopShooter()));
+    // shooter.setDefaultCommand(Commands.run(() -> shooter.stopShooter()));
 
     // Intake
     controller.leftTrigger().whileTrue(Commands.run(() -> intake.intake()));
-    //intake.setDefaultCommand(Commands.run(() -> intake.stopIntake()));
+    // intake.setDefaultCommand(Commands.run(() -> intake.stopIntake()));
 
     // Drivetrain default command
     drivetrain2.setDefaultCommand(
@@ -139,10 +139,10 @@ public class RobotContainer {
             () ->
                 drivetrain2.setControl(
                     (new SwerveRequest.FieldCentric()
-                        .withVelocityX(controller.getLeftY()*2.5)
-                        .withVelocityY(controller.getLeftX()*2.5)
-                        .withRotationalRate(
-                            controller.getRightX()*2.5))), drivetrain2)); // Drive counterclockwise with negative X
+                        .withVelocityX(controller.getLeftY() * 2.5)
+                        .withVelocityY(controller.getLeftX() * 2.5)
+                        .withRotationalRate(controller.getRightX() * 2.5))),
+            drivetrain2)); // Drive counterclockwise with negative X
     // auto align with inner cosmic converter
     controller
         .rightBumper()
@@ -188,8 +188,8 @@ public class RobotContainer {
     return Commands.print("No autonomous command configured");
   }
 
-    public static void zeroPigeon() {
-        Pigeon2 pigeon = new Pigeon2(CANMappings.PIGEON_CAN_ID);
-        pigeon.reset();
-    }
+  public static void zeroPigeon() {
+    Pigeon2 pigeon = new Pigeon2(CANMappings.PIGEON_CAN_ID);
+    pigeon.reset();
+  }
 }

@@ -12,6 +12,5 @@ public class CommandSwerveDrivetrainLogger extends ClassSpecificLogger<CommandSw
   }
 
   @Override
-  protected void update(EpilogueBackend backend, CommandSwerveDrivetrain drivetrain) {
-  }
+  protected void update(EpilogueBackend backend, CommandSwerveDrivetrain drivetrain) {}
 }

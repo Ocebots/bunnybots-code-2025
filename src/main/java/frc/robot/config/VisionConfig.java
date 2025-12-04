@@ -81,9 +81,17 @@ public class VisionConfig {
   public static final PhotonPoseEstimator.PoseStrategy STRATEGY =
       PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR;
   public static final Transform3d LEFT_CAMERA_POSITION =
-      new Transform3d(Units.inchesToMeters(9.25), Units.inchesToMeters(10.5), Units.inchesToMeters(7.5), new Rotation3d(0.0, Units.degreesToRadians(30), 0.0));
+      new Transform3d(
+          Units.inchesToMeters(9.25),
+          Units.inchesToMeters(10.5),
+          Units.inchesToMeters(7.5),
+          new Rotation3d(0.0, Units.degreesToRadians(30), 0.0));
   public static final Transform3d RIGHT_CAMERA_POSITION =
-          new Transform3d(Units.inchesToMeters(9.25), Units.inchesToMeters(-10.5), Units.inchesToMeters(7.5), new Rotation3d(0.0, Units.degreesToRadians(30), 0.0));
+      new Transform3d(
+          Units.inchesToMeters(9.25),
+          Units.inchesToMeters(-10.5),
+          Units.inchesToMeters(7.5),
+          new Rotation3d(0.0, Units.degreesToRadians(30), 0.0));
   public static final Transform3d REAR_CAMERA_POSITION =
       new Transform3d(0.0, 0.0, 0.0, new Rotation3d(0.0, 0.0, 0.0));
   Optional<EstimatedRobotPose> visionEst = Optional.empty();
