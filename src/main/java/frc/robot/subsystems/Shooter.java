@@ -75,6 +75,11 @@ public class Shooter extends SubsystemBase {
     mBottomShooter.setControl(new DutyCycleOut(velocity));
   }
 
+  public void shoot() {
+    mTopShooter.setControl(new DutyCycleOut(-1));
+    mBottomShooter.setControl(new DutyCycleOut(1));
+  }
+
   public void stopShooter() {
     mTopShooter.stopMotor();
     mBottomShooter.stopMotor();

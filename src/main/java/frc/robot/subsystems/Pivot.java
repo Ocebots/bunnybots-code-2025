@@ -16,14 +16,11 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.commands.PivotCommand;
 import frc.robot.config.CANMappings;
 import frc.robot.config.PivotConfig;
 import frc.robot.config.TunerConstants;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
 
 @Logged
 public class Pivot extends SubsystemBase {
@@ -31,7 +28,9 @@ public class Pivot extends SubsystemBase {
   protected TalonFX mPivotRight;
   protected Follower follower;
   protected CommandSwerveDrivetrain drivetrain;
-  InterpolatingDoubleTreeMap map1 = new InterpolatingDoubleTreeMap();
+  protected Shooter shooter;
+  protected Intake intake;
+  private final InterpolatingDoubleTreeMap map = new InterpolatingDoubleTreeMap();
 
   private double currentAngle;
 
@@ -40,7 +39,8 @@ public class Pivot extends SubsystemBase {
     mPivotRight = new TalonFX(CANMappings.K_PIVOT_RIGHT_ID);
 
     drivetrain = TunerConstants.createDrivetrain();
-
+    shooter = new Shooter();
+    intake = new Intake();
     TalonFXConfiguration leftPivotConfig = new TalonFXConfiguration();
     TalonFXConfiguration rightPivotConfig = new TalonFXConfiguration();
 
@@ -109,7 +109,11 @@ public class Pivot extends SubsystemBase {
   public void setPivotAngleRot(double rotation) {
     mPivotLeft.setControl(new MotionMagicVoltage(-rotation));
     mPivotRight.setControl(new MotionMagicVoltage(rotation));
-    // mPivotRight.setControl(follower);
+  }
+
+  public void pivotDefault() {
+    mPivotLeft.setControl(new MotionMagicVoltage(0.0));
+    mPivotRight.setControl(new MotionMagicVoltage(0.0));
   }
 
   public void zeroPivot() {
@@ -127,26 +131,6 @@ public class Pivot extends SubsystemBase {
         <= PivotConfig.K_PIVOT_ANGLE_TOLERANCE;
   }
 
-  public Rotation2d getHighAngle(Translation2d location) {
-    // location: the cosmic converter we're shooting on - 1 is blue inner, 2 is blue outer, 3 is red
-    // inner, 4 is red outer
-    // want 5-8 calibrations (distance, angle)
-    // in,
-    InterpolatingDoubleTreeMap map = new InterpolatingDoubleTreeMap();
-    map.put(59.0, 0.18);
-    map.put(76.5, 0.155);
-    map.put(96.5, 0.142);
-    map.put(125.5, 0.13);
-    map.put(169.5, 0.12);
-    map.put(210.5, 0.118);
-
-    double distance =
-        Math.sqrt(
-            Math.pow(location.getX() - drivetrain.getState().Pose.getX(), 2)
-                + Math.pow(location.getY() - drivetrain.getState().Pose.getY(), 2));
-    return Rotation2d.fromDegrees(map.get(distance));
-  }
-
   public double getPivotAngleDegrees() {
     currentAngle = mPivotLeft.getPosition().getValueAsDouble();
     currentAngle = currentAngle * 360;
@@ -159,217 +143,15 @@ public class Pivot extends SubsystemBase {
           .withDriveRequestType(
               SwerveModule.DriveRequestType.OpenLoopVoltage); // Or OpenLoopDutyCycle
 
-  public static int getAlliance() {
-    Optional<DriverStation.Alliance> alliance = DriverStation.getAlliance();
-
-    if (alliance.isPresent()) {
-      if (alliance.get() == DriverStation.Alliance.Blue) {
-        return 0;
-      }
-      if (alliance.get() == DriverStation.Alliance.Red) {
-        return 1;
-      }
-    }
-    System.out.println("no alliance detected: likely causing many errors");
-    return -1;
-  }
-
-  public static Translation2d getLocation(int innerouter) {
-    // ArrayList values: 0 - blue inner, 1 - blue outer, 2 - red inner, 3 - red outer
-    // innerouter: 0 - outer, 1 - inner
-    // getAlliance(): blue - 0, red - 1
-
-    List<Translation2d> locations =
-        new ArrayList<>(
-            Arrays.asList(
-                new Translation2d(4.0, 196.125),
-                new Translation2d(4.0, 20.5),
-                new Translation2d(644.0, 196.125),
-                new Translation2d(644.0, 20.5))); // same order as explained above
-
-    if (innerouter == 1 & Pivot.getAlliance() == 0) { // blue inner
-      return locations.get(0);
-    }
-    if (innerouter == 0 & Pivot.getAlliance() == 0) { // blue outer
-      return locations.get(1);
-    }
-    if (innerouter == 1 & Pivot.getAlliance() == 1) { // red inner
-      return locations.get(2);
-    }
-    if (innerouter == 0 & Pivot.getAlliance() == 1) { // red outer
-      return locations.get(3);
-    }
-    System.out.println("error in getLocation in pivot subsystem");
-    return new Translation2d(0.0, 0.0);
-  }
-
-  //  public DrivetrainCommand.Position getClosestCosmicConverterDrivetrain() {
-  //    Translation2d currentLocation =
-  //        new Translation2d(drivetrain.getState().Pose.getX(), drivetrain.getState().Pose.getY());
-  //    // ArrayList values: 0 - blue inner, 1 - blue outer, 2 - red inner, 3 - red outer
-  //    // innerouter: 0 - outer, 1 - inner
-  //    // getAlliance(): blue - 0, red - 1
-  //
-  //    List<Translation2d> locations =
-  //        new ArrayList<>(
-  //            Arrays.asList(
-  //                new Translation2d(4.0, 196.125),
-  //                new Translation2d(4.0, 20.5),
-  //                new Translation2d(644.0, 196.125),
-  //                new Translation2d(644.0, 20.5))); // same order as explained above
-  //
-  //    if (Pivot.getAlliance() == 1) { // red
-  //      if (Math.sqrt(
-  //              Math.pow(locations.get(2).getX() - drivetrain.getState().Pose.getX(), 2)
-  //                  + Math.pow(locations.get(2).getY() - drivetrain.getState().Pose.getY(), 2))
-  //          > Math.pow(locations.get(3).getX() - drivetrain.getState().Pose.getX(), 2)
-  //              + Math.pow(locations.get(3).getY() - drivetrain.getState().Pose.getY(), 2)) {
-  //        return DrivetrainCommand.Position.OUTER_COSMIC_CONVERTER; // outer
-  //      } else {
-  //        return DrivetrainCommand.Position.INNER_COSMIC_CONVERTER; // inner
-  //      }
-  //    } else if (Pivot.getAlliance() == 0) { // blue
-  //      if (Math.sqrt(
-  //              Math.pow(locations.get(0).getX() - drivetrain.getState().Pose.getX(), 2)
-  //                  + Math.pow(locations.get(0).getY() - drivetrain.getState().Pose.getY(), 2))
-  //          > Math.pow(locations.get(1).getX() - drivetrain.getState().Pose.getX(), 2)
-  //              + Math.pow(locations.get(1).getY() - drivetrain.getState().Pose.getY(), 2)) {
-  //        return DrivetrainCommand.Position.OUTER_COSMIC_CONVERTER; // outer
-  //      } else {
-  //        return DrivetrainCommand.Position.INNER_COSMIC_CONVERTER; // inner
-  //      }
-  //    } else {
-  //      System.out.println("error in getClosestCosmicConverter() in Pivot");
-  //      return DrivetrainCommand.Position.OUTER_COSMIC_CONVERTER;
-  // }
-  // }
-
-  //  public DrivetrainCommand.Position getFarthestCosmicConverterDrivetrain() {
-  //    Translation2d currentLocation =
-  //        new Translation2d(drivetrain.getState().Pose.getX(), drivetrain.getState().Pose.getY());
-  //    // ArrayList values: 0 - blue inner, 1 - blue outer, 2 - red inner, 3 - red outer
-  //    // innerouter: 0 - outer, 1 - inner
-  //    // getAlliance(): blue - 0, red - 1
-  //
-  //    List<Translation2d> locations =
-  //        new ArrayList<>(
-  //            Arrays.asList(
-  //                new Translation2d(4.0, 196.125),
-  //                new Translation2d(4.0, 20.5),
-  //                new Translation2d(644.0, 196.125),
-  //                new Translation2d(644.0, 20.5))); // same order as explained above
-  //
-  //    if (Pivot.getAlliance() == 1) { // red
-  //      if (Math.sqrt(
-  //              Math.pow(locations.get(2).getX() - drivetrain.getState().Pose.getX(), 2)
-  //                  + Math.pow(locations.get(2).getY() - drivetrain.getState().Pose.getY(), 2))
-  //          > Math.pow(locations.get(3).getX() - drivetrain.getState().Pose.getX(), 2)
-  //              + Math.pow(locations.get(3).getY() - drivetrain.getState().Pose.getY(), 2)) {
-  //        return DrivetrainCommand.Position.INNER_COSMIC_CONVERTER; // inner
-  //      } else {
-  //        return DrivetrainCommand.Position.OUTER_COSMIC_CONVERTER; // outer
-  //      }
-  //    } else if (Pivot.getAlliance() == 0) { // blue
-  //      if (Math.sqrt(
-  //              Math.pow(locations.get(0).getX() - drivetrain.getState().Pose.getX(), 2)
-  //                  + Math.pow(locations.get(0).getY() - drivetrain.getState().Pose.getY(), 2))
-  //          > Math.pow(locations.get(1).getX() - drivetrain.getState().Pose.getX(), 2)
-  //              + Math.pow(locations.get(1).getY() - drivetrain.getState().Pose.getY(), 2)) {
-  //        return DrivetrainCommand.Position.INNER_COSMIC_CONVERTER; // inner
-  //      } else {
-  //        return DrivetrainCommand.Position.OUTER_COSMIC_CONVERTER; // outer
-  //      }
-  //    } else {
-  //      System.out.println("error in getClosestCosmicConverter() in Pivot");
-  //      return DrivetrainCommand.Position.OUTER_COSMIC_CONVERTER;
-  //    }
-  //  }
-
-  public PivotCommand.Position getClosestCosmicConverterPivot() {
-    Translation2d currentLocation =
-        new Translation2d(drivetrain.getState().Pose.getX(), drivetrain.getState().Pose.getY());
-    // ArrayList values: 0 - blue inner, 1 - blue outer, 2 - red inner, 3 - red outer
-    // innerouter: 0 - outer, 1 - inner
-    // getAlliance(): blue - 0, red - 1
-
-    List<Translation2d> locations =
-        new ArrayList<>(
-            Arrays.asList(
-                new Translation2d(4.0, 196.125),
-                new Translation2d(4.0, 20.5),
-                new Translation2d(644.0, 196.125),
-                new Translation2d(644.0, 20.5))); // same order as explained above
-
-    if (Pivot.getAlliance() == 1) { // red
-      if (Math.sqrt(
-              Math.pow(locations.get(2).getX() - drivetrain.getState().Pose.getX(), 2)
-                  + Math.pow(locations.get(2).getY() - drivetrain.getState().Pose.getY(), 2))
-          > Math.pow(locations.get(3).getX() - drivetrain.getState().Pose.getX(), 2)
-              + Math.pow(locations.get(3).getY() - drivetrain.getState().Pose.getY(), 2)) {
-        return PivotCommand.Position.OUTER_HIGH_SHOOT; // outer
-      } else {
-        return PivotCommand.Position.INNER_HIGH_SHOOT; // inner
-      }
-    } else if (Pivot.getAlliance() == 0) { // blue
-      if (Math.sqrt(
-              Math.pow(locations.get(0).getX() - drivetrain.getState().Pose.getX(), 2)
-                  + Math.pow(locations.get(0).getY() - drivetrain.getState().Pose.getY(), 2))
-          > Math.pow(locations.get(1).getX() - drivetrain.getState().Pose.getX(), 2)
-              + Math.pow(locations.get(1).getY() - drivetrain.getState().Pose.getY(), 2)) {
-        return PivotCommand.Position.OUTER_HIGH_SHOOT; // outer
-      } else {
-        return PivotCommand.Position.INNER_HIGH_SHOOT; // inner
-      }
-    } else {
-      System.out.println("error in getClosestCosmicConverter() in Pivot");
-      return PivotCommand.Position.OUTER_HIGH_SHOOT;
-    }
-  }
-
-  public PivotCommand.Position getFarthestCosmicConverterPivot() {
-    Translation2d currentLocation =
-        new Translation2d(drivetrain.getState().Pose.getX(), drivetrain.getState().Pose.getY());
-    // ArrayList values: 0 - blue inner, 1 - blue outer, 2 - red inner, 3 - red outer
-    // innerouter: 0 - outer, 1 - inner
-    // getAlliance(): blue - 0, red - 1
-
-    List<Translation2d> locations =
-        new ArrayList<>(
-            Arrays.asList(
-                new Translation2d(4.0, 196.125),
-                new Translation2d(4.0, 20.5),
-                new Translation2d(644.0, 196.125),
-                new Translation2d(644.0, 20.5))); // same order as explained above
-
-    if (Pivot.getAlliance() == 1) { // red
-      if (Math.sqrt(
-              Math.pow(locations.get(2).getX() - drivetrain.getState().Pose.getX(), 2)
-                  + Math.pow(locations.get(2).getY() - drivetrain.getState().Pose.getY(), 2))
-          > Math.pow(locations.get(3).getX() - drivetrain.getState().Pose.getX(), 2)
-              + Math.pow(locations.get(3).getY() - drivetrain.getState().Pose.getY(), 2)) {
-        return PivotCommand.Position.INNER_HIGH_SHOOT; // inner
-      } else {
-        return PivotCommand.Position.OUTER_HIGH_SHOOT; // outer
-      }
-    } else if (Pivot.getAlliance() == 0) { // blue
-      if (Math.sqrt(
-              Math.pow(locations.get(0).getX() - drivetrain.getState().Pose.getX(), 2)
-                  + Math.pow(locations.get(0).getY() - drivetrain.getState().Pose.getY(), 2))
-          > Math.pow(locations.get(1).getX() - drivetrain.getState().Pose.getX(), 2)
-              + Math.pow(locations.get(1).getY() - drivetrain.getState().Pose.getY(), 2)) {
-        return PivotCommand.Position.INNER_HIGH_SHOOT; // inner
-      } else {
-        return PivotCommand.Position.OUTER_HIGH_SHOOT; // outer
-      }
-    } else {
-      System.out.println("error in getClosestCosmicConverter() in Pivot");
-      return PivotCommand.Position.OUTER_HIGH_SHOOT;
-    }
-  }
-
-  public Command getCosmicConverter(boolean isInner) {
+  public Command getCosmicConverter(BooleanSupplier complete, boolean isInner) {
     Optional<DriverStation.Alliance> alliance1 = DriverStation.getAlliance();
     Translation2d cosmicConverter = new Translation2d();
+    map.put(Units.inchesToMeters(59.0), 0.18);
+    map.put(Units.inchesToMeters(76.5), 0.155);
+    map.put(Units.inchesToMeters(96.5), 0.142);
+    map.put(Units.inchesToMeters(125.5), 0.13);
+    map.put(Units.inchesToMeters(169.5), 0.12);
+    map.put(Units.inchesToMeters(210.5), 0.118);
     if (alliance1.isPresent()) {
       if (alliance1.get() == DriverStation.Alliance.Blue) {
         if (isInner) {
@@ -393,7 +175,7 @@ public class Pivot extends SubsystemBase {
       Rotation2d heading = drivetrain.getState().Pose.getRotation();
 
       // shooter offset in robot frame (meters)
-      double shooterOffsetX = 0.20; // forward
+      double shooterOffsetX = 0.0; // forward
       double shooterOffsetY = -0.10; // right
 
       // convert to field frame
@@ -413,9 +195,29 @@ public class Pivot extends SubsystemBase {
               Math.atan2(cosmicConverter.getY() - shooterY, cosmicConverter.getX() - shooterX));
 
       return Commands.runOnce(
-          () ->
-              drivetrain.setControl(
-                  m_faceAngle.withVelocityX(0.1).withVelocityY(0.1).withTargetDirection(aimAngle)));
+              () ->
+                  drivetrain.setControl(
+                      m_faceAngle
+                          .withVelocityX(0.1)
+                          .withVelocityY(0.1)
+                          .withTargetDirection(aimAngle)))
+          .alongWith(
+              Commands.runOnce(
+                  () ->
+                      setPivotAngleRot(
+                          map.get(
+                              drivetrain
+                                  .getState()
+                                  .Pose
+                                  .getTranslation()
+                                  .getDistance(getCosmicConverterTranslation(false))))))
+          .andThen(
+              Commands.waitUntil(complete)
+                  .andThen(
+                      Commands.parallel(
+                              Commands.run(() -> shooter.shoot()),
+                              Commands.run(() -> intake.runKicker()))
+                          .until(() -> !complete.getAsBoolean())));
     } else {
       cosmicConverter = null;
       System.out.println("no alliance detected: likely causing many errors");
@@ -447,5 +249,9 @@ public class Pivot extends SubsystemBase {
       }
     }
     return cosmicConverter;
+  }
+
+  public Command lowScore(double angle) {
+    return Commands.run(() -> setPivotAngleRot(angle));
   }
 }

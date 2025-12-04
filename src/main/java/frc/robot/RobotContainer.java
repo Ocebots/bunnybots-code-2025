@@ -37,25 +37,24 @@ public class RobotContainer {
   private double MaxAngularRate =
       RotationsPerSecond.of(0.75)
           .in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
-
   /* Setting up bindings for necessary control of the swerve drive platform */
   private final SwerveRequest.FieldCentric drive =
       new SwerveRequest.FieldCentric()
-          .withDeadband(MaxSpeed * 0.50)
+          .withDeadband(MaxSpeed * 0.1)
           .withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
           .withDriveRequestType(
               SwerveModule.DriveRequestType
                   .OpenLoopVoltage); // Use open-loop control for drive motors
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
   private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
-
   private final Telemetry logger = new Telemetry(MaxSpeed);
 
   private CommandXboxController controller = new CommandXboxController(0);
-  private CommandSwerveDrivetrain drivetrain2 = TunerConstants.createDrivetrain();
+  private CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
   private Intake intake = new Intake();
   private Pivot pivot = new Pivot();
   private Shooter shooter = new Shooter();
+
   public static Pigeon2 pigeon2 = new Pigeon2(CANMappings.PIGEON_CAN_ID);
   Translation2d m_frontLeftLocation =
       new Translation2d(Units.inchesToMeters(10.875), Units.inchesToMeters(10.875));
@@ -71,10 +70,10 @@ public class RobotContainer {
               m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation),
           pigeon2.getRotation2d(),
           new SwerveModulePosition[] {
-            drivetrain2.getModule(0).getPosition(true),
-            drivetrain2.getModule(1).getPosition(true),
-            drivetrain2.getModule(2).getPosition(true),
-            drivetrain2.getModule(3).getPosition(true)
+            drivetrain.getModule(0).getPosition(true),
+            drivetrain.getModule(1).getPosition(true),
+            drivetrain.getModule(2).getPosition(true),
+            drivetrain.getModule(3).getPosition(true)
           },
           new Pose2d(0.0, 0.0, new Rotation2d()));
   static Field2d m_field = new Field2d();
@@ -87,12 +86,8 @@ public class RobotContainer {
   private void configureBindings() {
     final SwerveRequest.Idle idle = new SwerveRequest.Idle();
     RobotModeTriggers.disabled()
-        .whileTrue(drivetrain2.applyRequest(() -> idle).ignoringDisable(true));
-
-    // controller.rightTrigger().onTrue(superstructure.action());
-    // controller.leftBumper().onTrue(superstructure.toggleFarHigh());
-    // controller.rightBumper().onTrue(superstructure.toggleLowScore());
-    // controller.rightStick().onTrue(superstructure.toggleIntake());
+        .whileTrue(drivetrain.applyRequest(() -> idle).ignoringDisable(true));
+    drivetrain.registerTelemetry(logger::telemeterize);
 
     InterpolatingDoubleTreeMap map = new InterpolatingDoubleTreeMap();
     map.put(Units.inchesToMeters(59.0), 0.18);
@@ -102,86 +97,61 @@ public class RobotContainer {
     map.put(Units.inchesToMeters(169.5), 0.12);
     map.put(Units.inchesToMeters(210.5), 0.118);
 
-    // Pivot to angle based off distance
-    controller
-        .povUp()
-        .whileTrue(
-            (Commands.run(
-                () ->
-                    pivot.setPivotAngleRot(
-                        map.get(
-                            drivetrain2
-                                .getState()
-                                .Pose
-                                .getTranslation()
-                                .getDistance(pivot.getCosmicConverterTranslation(false)))))));
-
-    // Pivot default command
-    controller.povUp().whileFalse(Commands.run(() -> pivot.setPivotAngleRot(0.0)));
-    // Zero pivot
-    controller.povLeft().onTrue(Commands.runOnce(() -> pivot.zeroPivot()));
-    // Shoot
-    controller
-        .rightTrigger()
-        .whileTrue(
-            Commands.run(() -> shooter.shoot(1))
-                .alongWith(Commands.run(() -> intake.runKicker(-0.3))));
-    // Shooter default command
-    // shooter.setDefaultCommand(Commands.run(() -> shooter.stopShooter()));
-
-    // Intake
-    controller.leftTrigger().whileTrue(Commands.run(() -> intake.intake()));
-    // intake.setDefaultCommand(Commands.run(() -> intake.stopIntake()));
-
-    // Drivetrain default command
-    drivetrain2.setDefaultCommand(
-        Commands.run(
+    // Default commands
+    pivot.setDefaultCommand(Commands.run(() -> pivot.pivotDefault(), pivot));
+    shooter.setDefaultCommand(Commands.run(() -> shooter.stopShooter(), shooter));
+    intake.setDefaultCommand(Commands.run(() -> intake.stopIntake(), intake));
+    drivetrain.setDefaultCommand(
+        // Drivetrain will execute this command periodically
+        drivetrain.applyRequest(
             () ->
-                drivetrain2.setControl(
-                    (new SwerveRequest.FieldCentric()
-                        .withVelocityX(controller.getLeftY() * 2.5)
-                        .withVelocityY(controller.getLeftX() * 2.5)
-                        .withRotationalRate(controller.getRightX() * 2.5))),
-            drivetrain2)); // Drive counterclockwise with negative X
-    // auto align with inner cosmic converter
-    controller
-        .rightBumper()
-        .toggleOnTrue(
-            pivot
-                .getCosmicConverter(true)
-                .alongWith(
-                    Commands.run(
-                        (() ->
-                            pivot.setPivotAngleRot(
-                                map.get(
-                                    drivetrain2
-                                        .getState()
-                                        .Pose
-                                        .getTranslation()
-                                        .getDistance(
-                                            pivot.getCosmicConverterTranslation(true))))))));
+                drive
+                    .withVelocityX(
+                        -controller.getLeftY()
+                            * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(
+                        -controller.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(
+                        -controller.getRightX()
+                            * MaxAngularRate))); // Drive counterclockwise with negative X (left)
+    // Testing - Commented out until need to be used
+    // Pivot to angle based off distance
+//    controller
+//        .povUp()
+//        .whileTrue(
+//            (Commands.run(
+//                () ->
+//                    pivot.setPivotAngleRot(
+//                        map.get(
+//                            drivetrain
+//                                .getState()
+//                                .Pose
+//                                .getTranslation()
+//                                .getDistance(pivot.getCosmicConverterTranslation(false)))))));
+//
+//    // Zero pivot
+//    controller.povLeft().onTrue(Commands.runOnce(() -> pivot.zeroPivot()));
+//    // Shoot
+//    controller
+//        .rightTrigger()
+//        .whileTrue(
+//            Commands.run(() -> shooter.shoot()).alongWith(Commands.run(() -> intake.runKicker())));
+//    // Intake
+//    controller.leftTrigger().whileTrue(Commands.run(() -> intake.intake()));
+
+    // Specialized commands
+    // auto align with inner cosmic converter and raise pivot
+    controller.leftBumper().toggleOnTrue(pivot.getCosmicConverter(controller.rightTrigger(), true));
     // auto align with outer cosmic converter
     controller
-        .rightBumper()
-        .toggleOnTrue(
-            pivot
-                .getCosmicConverter(false)
-                .alongWith(
-                    Commands.run(
-                        (() ->
-                            pivot.setPivotAngleRot(
-                                map.get(
-                                    drivetrain2
-                                        .getState()
-                                        .Pose
-                                        .getTranslation()
-                                        .getDistance(
-                                            pivot.getCosmicConverterTranslation(false))))))));
+        .leftTrigger()
+        .toggleOnTrue(pivot.getCosmicConverter(controller.rightTrigger(), false));
+    // Intake
+    controller.leftStick().toggleOnTrue(Commands.run(() -> intake.intake()));
     // Outtake
-    controller.povDown().toggleOnTrue(Commands.run(() -> intake.outtake()));
+    controller.rightStick().toggleOnTrue(Commands.run(() -> intake.outtake()));
     // Low score
-    controller.povRight().toggleOnTrue(Commands.run(() -> pivot.setPivotAngleRot(0.0)));
-    drivetrain2.registerTelemetry(logger::telemeterize);
+    controller.rightBumper().toggleOnTrue(pivot.lowScore(0.0));
   }
 
   public Command getAutonomousCommand() {

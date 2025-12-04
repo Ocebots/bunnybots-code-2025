@@ -70,9 +70,9 @@ public class Intake extends SubsystemBase {
   }
 
   // Velocity is rotations per second of motor accounting for SensorToMechanismRatio
-  public void intake(double velocity) {
-    mInitialIntake.setControl(new DutyCycleOut(velocity));
-    mKickerIntake.setControl(new DutyCycleOut(velocity));
+  public void intake(double initialVelocity, double kickerVelocity) {
+    mInitialIntake.setControl(new DutyCycleOut(initialVelocity));
+    mKickerIntake.setControl(new DutyCycleOut(kickerVelocity));
   }
 
   public void intake() {
@@ -89,8 +89,16 @@ public class Intake extends SubsystemBase {
     mKickerIntake.setControl(new DutyCycleOut(velocity));
   }
 
+  public void runKicker() {
+    mKickerIntake.setControl(new DutyCycleOut(-0.3));
+  }
+
   public void runInitial(double velocity) {
     mInitialIntake.setControl(new DutyCycleOut(velocity));
+  }
+
+  public void runInitial() {
+    mInitialIntake.setControl(new DutyCycleOut(-0.5));
   }
 
   public void stopIntake() {
