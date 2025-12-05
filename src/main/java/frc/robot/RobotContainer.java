@@ -59,8 +59,13 @@ public class RobotContainer {
   private Intake intake = new Intake();
   private Pivot pivot = new Pivot();
   private Shooter shooter = new Shooter();
+    private final SwerveRequest.FieldCentricFacingAngle m_default =
+            new SwerveRequest.FieldCentricFacingAngle()
+                    .withDriveRequestType(
+                            SwerveModule.DriveRequestType.OpenLoopVoltage); // Or OpenLoopDutyCycle
 
-  public static Pigeon2 pigeon2 = new Pigeon2(CANMappings.PIGEON_CAN_ID);
+
+    public static Pigeon2 pigeon2 = new Pigeon2(CANMappings.PIGEON_CAN_ID);
   Translation2d m_frontLeftLocation =
       new Translation2d(Units.inchesToMeters(10.875), Units.inchesToMeters(10.875));
   Translation2d m_frontRightLocation =
@@ -106,6 +111,7 @@ public class RobotContainer {
   }
 
   @Logged Pose2d estimatedPosition = m_odometry.getEstimatedPosition();
+    @Logged private double goalAngle = drivetrain.getState().;
 
   private void configureBindings() {
     final SwerveRequest.Idle idle = new SwerveRequest.Idle();
@@ -167,18 +173,18 @@ public class RobotContainer {
 
     // Testing - Commented out until need to be used
     // Pivot to angle based off distance
-    controller
-        .povUp()
-        .whileTrue(
-            (Commands.run(
-                () ->
-                    pivot.setPivotAngleRot(
-                        map.get(
-                            drivetrain
-                                .getState()
-                                .Pose
-                                .getTranslation()
-                                .getDistance(pivot.getCosmicConverterTranslation(false)))))));
+    //    controller
+    //        .povUp()
+    //        .whileTrue(
+    //            (Commands.run(
+    //                () ->
+    //                    pivot.setPivotAngleRot(
+    //                        map.get(
+    //                            drivetrain
+    //                                .getState()
+    //                                .Pose
+    //                                .getTranslation()
+    //                                .getDistance(pivot.getCosmicConverterTranslation(false)))))));
     //      controller
     //              .povUp()
     //              .whileTrue(
@@ -192,27 +198,33 @@ public class RobotContainer {
     //
     //
     // Shoot
-    controller
-        .rightTrigger()
-        .whileTrue(
-            Commands.run(() -> shooter.shoot()).alongWith(Commands.run(() -> intake.intake())));
-    // Intake
+    //    controller
+    //        .rightTrigger()
+    //        .whileTrue(
+    //            Commands.run((() -> intake.runKicker(-0.7)))
+    //                .withTimeout(0.5)
+    //                .andThen(
+    //                    Commands.run(() -> shooter.shoot())
+    //                        .alongWith(Commands.run(() -> intake.intake()))));
+    //    // Intake
     //    controller.leftTrigger().whileTrue(Commands.run(() -> intake.intake()));
 
     // Specialized commands
     // auto align with inner cosmic converter and raise pivot
-    //    controller.leftBumper().toggleOnTrue(pivot.getCosmicConverter(controller.rightTrigger(),
-    // true));
-    //    // auto align with outer cosmic converter
-    //    controller
-    //        .leftTrigger()
-    //        .toggleOnTrue(pivot.getCosmicConverter(controller.rightTrigger(), false));
+    controller.leftBumper().toggleOnTrue(pivot.getCosmicConverter(controller.rightTrigger(), true));
+    // auto align with outer cosmic converter
+    controller
+        .leftTrigger().toggleOnTrue(pivot.getCosmicConverter(controller.rightTrigger(), false));
+    controller.rightTrigger().toggleOnFalse(pivot.defaults());
     // Intake
-    controller.leftStick().toggleOnTrue(Commands.run(() -> intake.intake()));
+    controller
+        .a()
+        .toggleOnTrue(Commands.run(() -> intake.intake()).alongWith(pivot.lowScore(0.31)));
+
     // Outtake
-    controller.rightStick().toggleOnTrue(Commands.run(() -> intake.outtake()));
+    controller.b().toggleOnTrue(Commands.run(() -> intake.outtake()));
     // Low score
-    controller.rightBumper().toggleOnTrue(pivot.lowScore(0.0));
+    controller.x().toggleOnTrue(pivot.lowScore(0.0));
   }
 
   public Command getAutonomousCommand() {

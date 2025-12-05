@@ -6,16 +6,12 @@ package frc.robot;
 
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.config.TunerConstants;
 import frc.robot.config.VisionConfig;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Vision;
 import java.util.List;
 import org.photonvision.targeting.PhotonPipelineResult;
@@ -25,7 +21,6 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   @Logged private final RobotContainer m_robotContainer;
   @Logged private Field2d field = new Field2d();
-
   public Robot() {
     m_robotContainer = new RobotContainer();
 
@@ -36,7 +31,6 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
     // loop continuously runs as long as the robot is active
     CommandScheduler.getInstance().run();
-
     Command selectedAuto = m_robotContainer.getAutonomousCommand();
     if (selectedAuto != null) {
       SmartDashboard.putString("Selected Auto", selectedAuto.getName());
@@ -52,8 +46,6 @@ public class Robot extends TimedRobot {
         m_robotContainer.drivetrain.getState().Pose);
 
     // Puts the pose data from one camera into a list
-
-
 
     List<PhotonPipelineResult> results = Vision.leftCameraApril.getAllUnreadResults();
 
@@ -77,8 +69,8 @@ public class Robot extends TimedRobot {
                 }
                 m_robotContainer.drivetrain.addVisionMeasurement(
                     pose.estimatedPose.toPose2d(), pose.timestampSeconds);
-                  System.out.println("VISION WORKING\nVISION WORKING");
-                  //System.out.println((pose.estimatedPose.getX(), pose.estimatedPose.getY());
+                System.out.println("VISION WORKING\nVISION WORKING");
+                // System.out.println((pose.estimatedPose.getX(), pose.estimatedPose.getY());
               });
     } else {
       System.out.println("Left cam NOT WORKING\nLeft cam NOT WORKING\nLeft cam NOT WORKING\n");
