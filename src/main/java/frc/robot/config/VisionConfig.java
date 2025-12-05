@@ -79,7 +79,7 @@ public class VisionConfig {
   public static final AprilTagFieldLayout FIELD_LAYOUT =
       new AprilTagFieldLayout(APRIL_TAG_LIST, Units.inchesToMeters(648), Units.inchesToMeters(324));
   public static final PhotonPoseEstimator.PoseStrategy STRATEGY =
-      PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR;
+      PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY;
   public static final Transform3d LEFT_CAMERA_POSITION =
       new Transform3d(
           Units.inchesToMeters(9.25),

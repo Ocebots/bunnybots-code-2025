@@ -56,7 +56,7 @@ public class RobotContainer {
   private final Telemetry logger = new Telemetry(MaxSpeed);
   private final SendableChooser<Command> autoChooser;
   private CommandXboxController controller = new CommandXboxController(0);
-  private CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+  public CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
   private Intake intake = new Intake();
   private Pivot pivot = new Pivot();
   private Shooter shooter = new Shooter();
