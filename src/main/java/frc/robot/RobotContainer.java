@@ -12,7 +12,6 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.util.PathPlannerLogging;
-
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -46,7 +45,7 @@ public class RobotContainer {
   /* Setting up bindings for necessary control of the swerve drive platform */
   private final SwerveRequest.FieldCentric drive =
       new SwerveRequest.FieldCentric()
-          .withDeadband(MaxSpeed * 0.1)
+          .withDeadband(MaxSpeed * 0.2)
           .withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
           .withDriveRequestType(
               SwerveModule.DriveRequestType
@@ -70,7 +69,7 @@ public class RobotContainer {
       new Translation2d(Units.inchesToMeters(-10.875), Units.inchesToMeters(10.875));
   Translation2d m_backRightLocation =
       new Translation2d(Units.inchesToMeters(-10.855), Units.inchesToMeters(-10.875));
-  SwerveDrivePoseEstimator m_odometry =
+  public SwerveDrivePoseEstimator m_odometry =
       new SwerveDrivePoseEstimator(
           new SwerveDriveKinematics(
               m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation),
@@ -90,10 +89,11 @@ public class RobotContainer {
     SmartDashboard.putData("Field", m_field);
 
     SmartDashboard.putData("Field", m_field);
-  
-    PathPlannerLogging.setLogActivePathCallback((poses) -> {
-        m_field.getObject("path").setPoses(poses);
-    });
+
+    PathPlannerLogging.setLogActivePathCallback(
+        (poses) -> {
+          m_field.getObject("path").setPoses(poses);
+        });
 
     autoChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("Auto Chooser", autoChooser);
@@ -213,15 +213,11 @@ public class RobotContainer {
     controller.rightStick().toggleOnTrue(Commands.run(() -> intake.outtake()));
     // Low score
     controller.rightBumper().toggleOnTrue(pivot.lowScore(0.0));
-
-
   }
 
   public Command getAutonomousCommand() {
     return autoChooser.getSelected();
   }
-
-  
 
   public static void zeroPigeon() {
     Pigeon2 pigeon = new Pigeon2(CANMappings.PIGEON_CAN_ID);

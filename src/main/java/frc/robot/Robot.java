@@ -6,10 +6,10 @@ package frc.robot;
 
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -25,6 +25,7 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
   @Logged private final RobotContainer m_robotContainer;
+  @Logged private Field2d field = new Field2d();
 
   public Robot() {
     m_robotContainer = new RobotContainer();
@@ -45,14 +46,12 @@ public class Robot extends TimedRobot {
           drivetrain.getModule(3).getPosition(true)
         });
 
-        
-
-        Command selectedAuto = m_robotContainer.getAutonomousCommand();
-        if (selectedAuto != null) {
-          SmartDashboard.putString("Selected Auto", selectedAuto.getName());
-        } else {
-            SmartDashboard.putString("Selected Auto", "None");
-        }
+    Command selectedAuto = m_robotContainer.getAutonomousCommand();
+    if (selectedAuto != null) {
+      SmartDashboard.putString("Selected Auto", selectedAuto.getName());
+    } else {
+      SmartDashboard.putString("Selected Auto", "None");
+    }
 
     // Updates the stored reference pose for use when using the CLOSEST_TO_REFERENCE_POSE_STRATEGY
     // (not in use)
@@ -84,9 +83,12 @@ public class Robot extends TimedRobot {
                 }
                 m_robotContainer.m_odometry.addVisionMeasurement(
                     pose.estimatedPose.toPose2d(), pose.timestampSeconds);
+                  System.out.println("VISION WORKING\nVISION WORKING");
+                  //System.out.println((pose.estimatedPose.getX(), pose.estimatedPose.getY());
               });
+    } else {
+      System.out.println("Left cam NOT WORKING\nLeft cam NOT WORKING\nLeft cam NOT WORKING\n");
     }
-
     results = Vision.rightCameraApril.getAllUnreadResults();
 
     if (!results.isEmpty()) {
@@ -102,6 +104,8 @@ public class Robot extends TimedRobot {
                 m_robotContainer.m_odometry.addVisionMeasurement(
                     pose.estimatedPose.toPose2d(), pose.timestampSeconds);
               });
+
+      field.setRobotPose(m_robotContainer.m_odometry.getEstimatedPosition());
     }
   }
 
