@@ -195,7 +195,7 @@ public class Pivot extends SubsystemBase {
                                     cosmicConverter.getY() - drivetrain.getState().Pose.getY(),
                                     cosmicConverter.getX() - drivetrain.getState().Pose.getX()));
 
-            return Commands.runOnce(
+            return Commands.run(
                             () -> drivetrain.setControl(m_faceAngle.withTargetDirection(aimAngle)), drivetrain)
                     .alongWith(
                             Commands.runOnce(
@@ -207,7 +207,7 @@ public class Pivot extends SubsystemBase {
                                                                     .Pose
                                                                     .getTranslation()
                                                                     .getDistance(getCosmicConverterTranslation(false))))))
-                    .andThen(
+                    .withDeadline(
                             Commands.waitUntil(complete)
                                     .andThen(
                                             Commands.parallel(
