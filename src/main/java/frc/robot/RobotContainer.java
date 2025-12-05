@@ -9,6 +9,10 @@ import static edu.wpi.first.units.Units.*;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.util.PathPlannerLogging;
+
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -19,6 +23,8 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -48,7 +54,7 @@ public class RobotContainer {
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
   private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
   private final Telemetry logger = new Telemetry(MaxSpeed);
-
+  private final SendableChooser<Command> autoChooser;
   private CommandXboxController controller = new CommandXboxController(0);
   private CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
   private Intake intake = new Intake();
@@ -80,7 +86,23 @@ public class RobotContainer {
 
   // links xbox controller to controls
   public RobotContainer() {
+
+    SmartDashboard.putData("Field", m_field);
+
+    SmartDashboard.putData("Field", m_field);
+  
+    PathPlannerLogging.setLogActivePathCallback((poses) -> {
+        m_field.getObject("path").setPoses(poses);
+    });
+
+    autoChooser = AutoBuilder.buildAutoChooser();
+    SmartDashboard.putData("Auto Chooser", autoChooser);
+
     configureBindings();
+  }
+
+  public void updateTelemetry() {
+    m_field.setRobotPose(drivetrain.getState().Pose);
   }
 
   @Logged Pose2d estimatedPosition = m_odometry.getEstimatedPosition();
@@ -98,6 +120,33 @@ public class RobotContainer {
     map.put(Units.inchesToMeters(125.5), 0.13);
     map.put(Units.inchesToMeters(169.5), 0.12);
     map.put(Units.inchesToMeters(210.5), 0.118);
+
+    NamedCommands.registerCommand(
+        "idle",
+        Commands.run(() -> intake.stopIntake(), intake)
+            .alongWith(
+                Commands.run(() -> shooter.stopShooter(), shooter)
+                    .alongWith(Commands.run(() -> pivot.pivotDefault(), pivot))));
+    NamedCommands.registerCommand(
+        "high goal shoot",
+        Commands.run(() -> intake.intake(), intake)
+            .alongWith(
+                Commands.run(() -> shooter.shoot(), shooter)
+                    .alongWith(
+                        Commands.run(
+                            () ->
+                                pivot.setPivotAngleRot(
+                                    m_odometry
+                                        .getEstimatedPosition()
+                                        .getTranslation()
+                                        .getDistance(pivot.getCosmicConverterTranslation(false))),
+                            pivot))));
+    NamedCommands.registerCommand(
+        "intake",
+        Commands.run(() -> intake.intake(), intake)
+            .alongWith(
+                Commands.run(() -> shooter.stopShooter(), shooter)
+                    .alongWith(Commands.run(() -> pivot.setPivotAngleRot(0.0), pivot))));
 
     // Default commands
     pivot.setDefaultCommand(Commands.run(() -> pivot.pivotDefault(), pivot));
@@ -164,11 +213,15 @@ public class RobotContainer {
     controller.rightStick().toggleOnTrue(Commands.run(() -> intake.outtake()));
     // Low score
     controller.rightBumper().toggleOnTrue(pivot.lowScore(0.0));
+
+
   }
 
   public Command getAutonomousCommand() {
-    return Commands.print("No autonomous command configured");
+    return autoChooser.getSelected();
   }
+
+  
 
   public static void zeroPigeon() {
     Pigeon2 pigeon = new Pigeon2(CANMappings.PIGEON_CAN_ID);
