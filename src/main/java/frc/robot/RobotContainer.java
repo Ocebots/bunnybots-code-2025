@@ -111,8 +111,8 @@ public class RobotContainer {
   }
 
   @Logged Pose2d estimatedPosition = m_odometry.getEstimatedPosition();
-    @Logged private double goalAngle = drivetrain.getState().;
-
+    @Logged private double goalAngle = drivetrain.getState().ModuleTargets[1].angle.getRotations();
+@Logged private double actualAngle = drivetrain.getState().ModuleStates[1].angle.getRotations();
   private void configureBindings() {
     final SwerveRequest.Idle idle = new SwerveRequest.Idle();
     RobotModeTriggers.disabled()

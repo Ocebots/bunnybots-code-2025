@@ -139,8 +139,7 @@ public class Pivot extends SubsystemBase {
     }
 
     private final SwerveRequest.FieldCentricFacingAngle m_faceAngle =
-            new SwerveRequest.FieldCentricFacingAngle()
-                    .withDriveRequestType(
+            new SwerveRequest.FieldCentricFacingAngle().withDriveRequestType(
                             SwerveModule.DriveRequestType.OpenLoopVoltage); // Or OpenLoopDutyCycle
 
     public Command getCosmicConverter(BooleanSupplier complete, boolean isInner) {
@@ -197,7 +196,7 @@ public class Pivot extends SubsystemBase {
                                     cosmicConverter.getX() - drivetrain.getState().Pose.getX()));
 
             return Commands.runOnce(
-                            () -> drivetrain.setControl(m_faceAngle.withTargetDirection(aimAngle)))
+                            () -> drivetrain.setControl(m_faceAngle.withTargetDirection(aimAngle)), drivetrain)
                     .alongWith(
                             Commands.runOnce(
                                     () ->
