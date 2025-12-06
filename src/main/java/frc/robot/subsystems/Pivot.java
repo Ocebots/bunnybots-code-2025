@@ -196,27 +196,27 @@ public class Pivot extends SubsystemBase {
                                     cosmicConverter.getX() - drivetrain.getState().Pose.getX()));
 
             return Commands.run(
-                            () -> drivetrain.setControl(m_faceAngle.withTargetDirection(aimAngle)), drivetrain)
-                    .alongWith(
-                            Commands.runOnce(
-                                    () ->
-                                            setPivotAngleRot(
-                                                    map.get(
-                                                            drivetrain
-                                                                    .getState()
-                                                                    .Pose
-                                                                    .getTranslation()
-                                                                    .getDistance(getCosmicConverterTranslation(false))))))
-                    .withDeadline(
-                            Commands.waitUntil(complete)
-                                    .andThen(
-                                            Commands.parallel(
-                                                            Commands.run((() -> intake.runKicker(-0.7)))
-                                                                    .withTimeout(0.5)
-                                                                    .andThen(
-                                                                            Commands.run(() -> shooter.shoot())
-                                                                                    .alongWith(Commands.run(() -> intake.intake()))))
-                                                    .until(() -> !complete.getAsBoolean())));
+                            () -> drivetrain.setControl(m_faceAngle.withTargetDirection(aimAngle)), drivetrain).until(complete);
+                    // .alongWith(
+                    //         Commands.runOnce(
+                    //                 () ->
+                    //                         setPivotAngleRot(
+                    //                                 map.get(
+                    //                                         drivetrain
+                    //                                                 .getState()
+                    //                                                 .Pose
+                    //                                                 .getTranslation()
+                    //                                                 .getDistance(getCosmicConverterTranslation(false))))))
+                    // .withDeadline(
+                    //         Commands.waitUntil(complete)
+                    //                 .andThen(
+                    //                         Commands.parallel(
+                    //                                         Commands.run((() -> intake.runKicker(-0.7)))
+                    //                                                 .withTimeout(0.5)
+                    //                                                 .andThen(
+                    //                                                         Commands.run(() -> shooter.shoot())
+                    //                                                                 .alongWith(Commands.run(() -> intake.intake()))))
+                    //                                 .until(() -> !complete.getAsBoolean())));
         } else {
             cosmicConverter = null;
             System.out.println("no alliance detected: likely causing many errors");
