@@ -5,39 +5,41 @@
     "data": {
       "commands": [
         {
-          "type": "named",
+          "type": "deadline",
           "data": {
-            "name": "high goal shoot"
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "wait 5 seconds"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "high goal shoot"
+                }
+              }
+            ]
           }
         },
         {
-          "type": "wait",
+          "type": "deadline",
           "data": {
-            "waitTime": 5.0
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "idle"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "intake"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "take 3 flat"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "idle"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "take 3 flat"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "intake"
+                }
+              }
+            ]
           }
         },
         {
@@ -47,9 +49,22 @@
           }
         },
         {
-          "type": "named",
+          "type": "deadline",
           "data": {
-            "name": "high goal shoot"
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "wait 5 seconds"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "high goal shoot"
+                }
+              }
+            ]
           }
         },
         {
@@ -62,6 +77,12 @@
           "type": "path",
           "data": {
             "pathName": "all the way out 1"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": null
           }
         }
       ]

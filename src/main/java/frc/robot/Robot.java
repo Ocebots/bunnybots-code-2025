@@ -70,11 +70,9 @@ public class Robot extends TimedRobot {
                 }
                 m_robotContainer.drivetrain.addVisionMeasurement(
                     pose.estimatedPose.toPose2d(), pose.timestampSeconds);
-                System.out.println("VISION WORKING\nVISION WORKING");
                 // System.out.println((pose.estimatedPose.getX(), pose.estimatedPose.getY());
               });
     } else {
-      System.out.println("Left cam NOT WORKING\nLeft cam NOT WORKING\nLeft cam NOT WORKING\n");
     }
     results = Vision.rightCameraApril.getAllUnreadResults();
 

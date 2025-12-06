@@ -131,26 +131,34 @@ public class RobotContainer {
     map.put(Units.inchesToMeters(169.5), 0.12);
     map.put(Units.inchesToMeters(210.5), 0.118);
 
+    NamedCommands.registerCommand("wait 5 seconds", Commands.waitSeconds(5));
+
     NamedCommands.registerCommand(
         "idle",
-        Commands.run(() -> intake.stopIntake(), intake)
+        Commands.runOnce(() -> intake.stopIntake(), intake)
             .alongWith(
-                Commands.run(() -> shooter.stopShooter(), shooter)
-                    .alongWith(Commands.run(() -> pivot.pivotDefault(), pivot))));
+                Commands.runOnce(() -> shooter.stopShooter(), shooter)
+                    .alongWith(Commands.runOnce(() -> pivot.pivotDefault(), pivot))));
+
     NamedCommands.registerCommand(
         "high goal shoot",
-        Commands.run(() -> pivot.setPivotAngleRot(0.14), pivot)
+        Commands.run(() -> pivot.setPivotAngleRot(0.14), pivot).alongWith(Commands.run(() -> System.out.println("Pivot going")))
             .withTimeout(1)
             .andThen(
-                Commands.run(() -> shooter.shoot(), shooter))
-                    .withTimeout(1)
-                    .andThen(Commands.run(() -> intake.intake(), intake)));
+                Commands.run(() -> shooter.shoot(), shooter)
+                    .alongWith(Commands.run(() -> System.out.println("Shooter going")))
+                     // Timeout applied to shooter command only
+            .alongWith(
+                Commands.run(() -> intake.intake(), intake)
+                    .alongWith(Commands.run(() -> System.out.println("Intake going")))
+                    )));
+                    
     NamedCommands.registerCommand(
         "intake",
-        Commands.run(() -> intake.intake(), intake)
+        Commands.run(() -> intake.intake(), intake).alongWith(Commands.run((() -> System.out.println("Intake intaking off ground")))
             .alongWith(
-                Commands.run(() -> shooter.stopShooter(), shooter)
-                    .alongWith(Commands.run(() -> pivot.setPivotAngleRot(0.0), pivot))));
+                Commands.run(() -> shooter.stopShooter(), shooter).alongWith(Commands.run(() -> System.out.println("Shooter stopped")))
+                    .alongWith(Commands.run(() -> pivot.lowScore(0.31), pivot).alongWith(Commands.run(() -> System.out.println("Pivot to intake position")))))));
 
     // Default commands
     pivot.setDefaultCommand(Commands.run(() -> pivot.pivotDefault(), pivot));
@@ -209,6 +217,9 @@ public class RobotContainer {
 
     // Specialized commands
     // auto align with inner cosmic converter and raise pivot
+    
+    // Intake
+
     controller.leftBumper().toggleOnTrue(pivot.getCosmicConverter(controller.rightTrigger(), true));
     // auto align with outer cosmic converter
     controller
@@ -228,7 +239,18 @@ public class RobotContainer {
 
   public Command getAutonomousCommand() {
     return new PathPlannerAuto("take 3 high shoot then there");
-  }
+    
+//     Commands.run(() -> pivot.setPivotAngleRot(0.14), pivot).alongWith(Commands.run(() -> System.out.println("Pivot going")))
+//     .withTimeout(1)
+//     .andThen(
+//         Commands.run(() -> shooter.shoot(), shooter)
+//             .alongWith(Commands.run(() -> System.out.println("Shooter going")))
+//              // Timeout applied to shooter command only
+//     .alongWith(
+//         Commands.run(() -> intake.intake(), intake)
+//             .alongWith(Commands.run(() -> System.out.println("Intake going")))
+//             )).withDeadline(Commands.waitSeconds(5));
+}
 
   public static void zeroPigeon() {
     Pigeon2 pigeon = new Pigeon2(CANMappings.PIGEON_CAN_ID);
