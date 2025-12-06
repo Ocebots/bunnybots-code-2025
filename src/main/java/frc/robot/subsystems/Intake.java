@@ -77,7 +77,7 @@ public class Intake extends SubsystemBase {
 
   public void intake() {
     mInitialIntake.setControl(new DutyCycleOut(-0.5));
-    mKickerIntake.setControl(new DutyCycleOut(-0.7));
+    mKickerIntake.setControl(new DutyCycleOut(-1));
   }
 
   public void outtake() {

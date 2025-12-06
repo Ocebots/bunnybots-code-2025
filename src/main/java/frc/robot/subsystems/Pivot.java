@@ -140,7 +140,7 @@ public class Pivot extends SubsystemBase {
 
     private final SwerveRequest.FieldCentricFacingAngle m_faceAngle =
             new SwerveRequest.FieldCentricFacingAngle().withDriveRequestType(
-                            SwerveModule.DriveRequestType.OpenLoopVoltage); // Or OpenLoopDutyCycle
+                            SwerveModule.DriveRequestType.OpenLoopVoltage).withHeadingPID(6, 0, 0); // Or OpenLoopDutyCycle
 
     public Command getCosmicConverter(BooleanSupplier complete, boolean isInner) {
         Optional<DriverStation.Alliance> alliance1 = DriverStation.getAlliance();
@@ -193,30 +193,29 @@ public class Pivot extends SubsystemBase {
                     new Rotation2d(
                             Math.atan2(
                                     cosmicConverter.getY() - drivetrain.getState().Pose.getY(),
-                                    cosmicConverter.getX() - drivetrain.getState().Pose.getX()));
+                                    cosmicConverter.getX() - drivetrain.getState().Pose.getX())+Math.PI/2+Units.degreesToRadians(8));
 
             return Commands.run(
-                            () -> drivetrain.setControl(m_faceAngle.withTargetDirection(aimAngle)), drivetrain).until(complete);
-                    // .alongWith(
-                    //         Commands.runOnce(
-                    //                 () ->
-                    //                         setPivotAngleRot(
-                    //                                 map.get(
-                    //                                         drivetrain
-                    //                                                 .getState()
-                    //                                                 .Pose
-                    //                                                 .getTranslation()
-                    //                                                 .getDistance(getCosmicConverterTranslation(false))))))
-                    // .withDeadline(
-                    //         Commands.waitUntil(complete)
-                    //                 .andThen(
-                    //                         Commands.parallel(
-                    //                                         Commands.run((() -> intake.runKicker(-0.7)))
-                    //                                                 .withTimeout(0.5)
-                    //                                                 .andThen(
-                    //                                                         Commands.run(() -> shooter.shoot())
-                    //                                                                 .alongWith(Commands.run(() -> intake.intake()))))
-                    //                                 .until(() -> !complete.getAsBoolean())));
+                            () -> drivetrain.setControl(m_faceAngle.withTargetDirection(aimAngle)), drivetrain)
+                     .alongWith(run(
+                                     () ->
+                                             setPivotAngleRot(
+                                                     map.get(
+                                                             drivetrain
+                                                                     .getState()
+                                                                     .Pose
+                                                                     .getTranslation()
+                                                                     .getDistance(getCosmicConverterTranslation(false)))-0.01)))
+                     .withDeadline(
+                             Commands.waitUntil(complete)
+                                     .andThen(
+                                             Commands.parallel(
+                                                             Commands.run((() -> intake.runKicker(0.2)))
+                                                                     .withTimeout(0.25)
+                                                                     .andThen(
+                                                                             Commands.run(() -> shooter.shoot())
+                                                                                     .alongWith(Commands.run(() -> intake.intake()))))
+                                                     .until(() -> !complete.getAsBoolean())));
         } else {
             cosmicConverter = null;
             System.out.println("no alliance detected: likely causing many errors");
