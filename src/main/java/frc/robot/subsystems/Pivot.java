@@ -170,6 +170,8 @@ public class Pivot extends SubsystemBase {
                             new Translation2d(Units.inchesToMeters(644.0), Units.inchesToMeters(20.5));
                 }
             }
+            
+            final Translation2d cosmicConverterFinal = cosmicConverter;
 
             Rotation2d heading = drivetrain.getState().Pose.getRotation();
 
@@ -188,15 +190,11 @@ public class Pivot extends SubsystemBase {
                             + shooterOffsetX * heading.getSin()
                             + shooterOffsetY * heading.getCos();
 
-            // compute target angle
-            Rotation2d aimAngle =
-                    new Rotation2d(
-                            Math.atan2(
-                                    cosmicConverter.getY() - drivetrain.getState().Pose.getY(),
-                                    cosmicConverter.getX() - drivetrain.getState().Pose.getX())+Math.PI/2+Units.degreesToRadians(8));
-
             return Commands.run(
-                            () -> drivetrain.setControl(m_faceAngle.withTargetDirection(aimAngle)), drivetrain)
+                            () -> drivetrain.setControl(m_faceAngle.withTargetDirection(new Rotation2d(
+                            Math.atan2(
+                                    cosmicConverterFinal.getY() - drivetrain.getState().Pose.getY(),
+                                    cosmicConverterFinal.getX() - drivetrain.getState().Pose.getX())+Math.PI/2+Units.degreesToRadians(8)))), drivetrain)
                      .alongWith(run(
                                      () ->
                                              setPivotAngleRot(
@@ -217,7 +215,6 @@ public class Pivot extends SubsystemBase {
                                                                                      .alongWith(Commands.run(() -> intake.intake()))))
                                                      .until(() -> !complete.getAsBoolean())));
         } else {
-            cosmicConverter = null;
             System.out.println("no alliance detected: likely causing many errors");
             return null;
         }
