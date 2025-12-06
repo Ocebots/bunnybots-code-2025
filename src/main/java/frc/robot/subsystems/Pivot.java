@@ -34,13 +34,13 @@ public class Pivot extends SubsystemBase {
 
     private double currentAngle;
 
-    public Pivot() {
+    public Pivot(CommandSwerveDrivetrain drivetrain, Shooter shooter, Intake intake) {
         mPivotLeft = new TalonFX(CANMappings.K_PIVOT_LEFT_ID);
         mPivotRight = new TalonFX(CANMappings.K_PIVOT_RIGHT_ID);
 
-        drivetrain = TunerConstants.createDrivetrain();
-        shooter = new Shooter();
-        intake = new Intake();
+        this.drivetrain = drivetrain;
+        this.shooter = shooter;
+        this.intake = intake;
         TalonFXConfiguration leftPivotConfig = new TalonFXConfiguration();
         TalonFXConfiguration rightPivotConfig = new TalonFXConfiguration();
 
