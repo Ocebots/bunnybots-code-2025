@@ -4,24 +4,94 @@
 
 package frc.robot;
 
+import edu.wpi.first.epilogue.Epilogue;
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.config.VisionConfig;
+import frc.robot.subsystems.Vision;
+import java.util.List;
+import org.photonvision.targeting.PhotonPipelineResult;
 
-// we'll do nothing in this file too?
+@Logged
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
-
-  private final RobotContainer m_robotContainer;
+  @Logged private final RobotContainer m_robotContainer;
+  @Logged private Field2d field = new Field2d();
 
   public Robot() {
     m_robotContainer = new RobotContainer();
+
+    Epilogue.bind(this);
   }
 
   @Override
   public void robotPeriodic() {
     // loop continuously runs as long as the robot is active
     CommandScheduler.getInstance().run();
+    Command selectedAuto = m_robotContainer.getAutonomousCommand();
+    if (selectedAuto != null) {
+      SmartDashboard.putString("Selected Auto", selectedAuto.getName());
+    } else {
+      SmartDashboard.putString("Selected Auto", "None");
+    }
+
+    // Updates the stored reference pose for use when using the CLOSEST_TO_REFERENCE_POSE_STRATEGY
+    // (not in use)
+    VisionConfig.photonPoseEstimatorLeft.setReferencePose(
+        m_robotContainer.drivetrain.getState().Pose);
+    VisionConfig.photonPoseEstimatorRight.setReferencePose(
+        m_robotContainer.drivetrain.getState().Pose);
+
+    // Puts the pose data from one camera into a list
+
+    List<PhotonPipelineResult> results = Vision.leftCameraApril.getAllUnreadResults();
+
+    // If there is pose data from the cameras, get the latest estimated pose and update the 'vision'
+    // photon pose estimator
+    // If there is no multi tag result and the distance from the camera to the target is greater
+    // than
+    // 4 meters, return
+    // Otherwise, add the latest vision pose estimate to a filter with the odometry pose estimate
+    // and set
+    // the guessed pose from that to the current pose
+    if (!results.isEmpty()) {
+      PhotonPipelineResult result = results.get(results.size() - 1);
+      VisionConfig.photonPoseEstimatorLeft
+          .update(result)
+          .ifPresent(
+              (pose) -> {
+                if (result.multitagResult.isEmpty()
+                    && result.targets.get(0).bestCameraToTarget.getTranslation().getNorm() > 4) {
+                  return;
+                }
+                m_robotContainer.drivetrain.addVisionMeasurement(
+                    pose.estimatedPose.toPose2d(), pose.timestampSeconds);
+                // System.out.println((pose.estimatedPose.getX(), pose.estimatedPose.getY());
+              });
+    } else {
+    }
+    results = Vision.rightCameraApril.getAllUnreadResults();
+
+    if (!results.isEmpty()) {
+      PhotonPipelineResult result = results.get(results.size() - 1);
+      VisionConfig.photonPoseEstimatorRight
+          .update(result)
+          .ifPresent(
+              (pose) -> {
+                if (result.multitagResult.isEmpty()
+                    && result.targets.get(0).bestCameraToTarget.getTranslation().getNorm() > 4) {
+                  return;
+                }
+                m_robotContainer.drivetrain.addVisionMeasurement(
+                    pose.estimatedPose.toPose2d(), pose.timestampSeconds);
+              });
+
+      field.setRobotPose(m_robotContainer.m_odometry.getEstimatedPosition());
+    }
   }
 
   @Override
@@ -41,6 +111,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
+    RobotContainer.zeroPigeon();
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
     if (m_autonomousCommand != null) {
