@@ -11,6 +11,7 @@ import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -60,13 +61,12 @@ public class RobotContainer {
   private Intake intake = new Intake();
   private Shooter shooter = new Shooter();
   private Pivot pivot = new Pivot(drivetrain, shooter, intake);
-    private final SwerveRequest.FieldCentricFacingAngle m_default =
-            new SwerveRequest.FieldCentricFacingAngle()
-                    .withDriveRequestType(
-                            SwerveModule.DriveRequestType.OpenLoopVoltage); // Or OpenLoopDutyCycle
+  private final SwerveRequest.FieldCentricFacingAngle m_default =
+      new SwerveRequest.FieldCentricFacingAngle()
+          .withDriveRequestType(
+              SwerveModule.DriveRequestType.OpenLoopVoltage); // Or OpenLoopDutyCycle
 
-
-    public static Pigeon2 pigeon2 = new Pigeon2(CANMappings.PIGEON_CAN_ID);
+  public static Pigeon2 pigeon2 = new Pigeon2(CANMappings.PIGEON_CAN_ID);
   Translation2d m_frontLeftLocation =
       new Translation2d(Units.inchesToMeters(10.875), Units.inchesToMeters(10.875));
   Translation2d m_frontRightLocation =
@@ -92,7 +92,7 @@ public class RobotContainer {
   // links xbox controller to controls
   public RobotContainer() {
 
-      CommandScheduler.getInstance().registerSubsystem(drivetrain);
+    CommandScheduler.getInstance().registerSubsystem(drivetrain);
 
     SmartDashboard.putData("Field", m_field);
 
@@ -114,8 +114,9 @@ public class RobotContainer {
   }
 
   @Logged Pose2d estimatedPosition = m_odometry.getEstimatedPosition();
-    @Logged private double goalAngle = drivetrain.getState().ModuleTargets[1].angle.getRotations();
-@Logged private double actualAngle = drivetrain.getState().ModuleStates[1].angle.getRotations();
+  @Logged private double goalAngle = drivetrain.getState().ModuleTargets[1].angle.getRotations();
+  @Logged private double actualAngle = drivetrain.getState().ModuleStates[1].angle.getRotations();
+
   private void configureBindings() {
     final SwerveRequest.Idle idle = new SwerveRequest.Idle();
     RobotModeTriggers.disabled()
@@ -138,18 +139,12 @@ public class RobotContainer {
                     .alongWith(Commands.run(() -> pivot.pivotDefault(), pivot))));
     NamedCommands.registerCommand(
         "high goal shoot",
-        Commands.run(() -> intake.intake(), intake)
-            .alongWith(
-                Commands.run(() -> shooter.shoot(), shooter)
-                    .alongWith(
-                        Commands.run(
-                            () ->
-                                pivot.setPivotAngleRot(
-                                    m_odometry
-                                        .getEstimatedPosition()
-                                        .getTranslation()
-                                        .getDistance(pivot.getCosmicConverterTranslation(false))),
-                            pivot))));
+        Commands.run(() -> pivot.setPivotAngleRot(0.14), pivot)
+            .withTimeout(1)
+            .andThen(
+                Commands.run(() -> shooter.shoot(), shooter))
+                    .withTimeout(1)
+                    .andThen(Commands.run(() -> intake.intake(), intake)));
     NamedCommands.registerCommand(
         "intake",
         Commands.run(() -> intake.intake(), intake)
@@ -217,7 +212,8 @@ public class RobotContainer {
     controller.leftBumper().toggleOnTrue(pivot.getCosmicConverter(controller.rightTrigger(), true));
     // auto align with outer cosmic converter
     controller
-        .leftTrigger().toggleOnTrue(pivot.getCosmicConverter(controller.rightTrigger(), false));
+        .leftTrigger()
+        .toggleOnTrue(pivot.getCosmicConverter(controller.rightTrigger(), false));
     controller.rightTrigger().toggleOnFalse(pivot.defaults());
     // Intake
     controller
@@ -231,7 +227,7 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    return autoChooser.getSelected();
+    return new PathPlannerAuto("take 3 high shoot then there");
   }
 
   public static void zeroPigeon() {

@@ -21,6 +21,7 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   @Logged private final RobotContainer m_robotContainer;
   @Logged private Field2d field = new Field2d();
+
   public Robot() {
     m_robotContainer = new RobotContainer();
 
