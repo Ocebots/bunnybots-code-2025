@@ -58,8 +58,8 @@ public class RobotContainer {
   private CommandXboxController controller = new CommandXboxController(0);
   public CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
   private Intake intake = new Intake();
-  private Pivot pivot = new Pivot();
   private Shooter shooter = new Shooter();
+  private Pivot pivot = new Pivot(drivetrain, shooter, intake);
     private final SwerveRequest.FieldCentricFacingAngle m_default =
             new SwerveRequest.FieldCentricFacingAngle()
                     .withDriveRequestType(
