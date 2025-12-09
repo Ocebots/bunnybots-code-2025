@@ -315,7 +315,8 @@ public class RobotContainer {
         .withTimeout(2)
         .andThen(
             Commands.run(() -> shooter.shoot(), shooter)
-                .alongWith(Commands.run(() -> intake.intake(), intake))).withDeadline(Commands.waitSeconds(10));
+                .alongWith(Commands.run(() -> intake.intake(), intake)))
+        .withDeadline(Commands.waitSeconds(10));
     //        .withDeadline(Commands.waitSeconds(10));
     //        return Commands.waitSeconds(12).andThen(
     //                Commands.run(() -> drivetrain.setControl(autoDrive.withVelocityX(1)))
