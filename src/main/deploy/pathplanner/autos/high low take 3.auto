@@ -1,0 +1,31 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "take 3"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Low goal setup 2"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "low goal finish"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
