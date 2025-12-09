@@ -11,7 +11,6 @@ import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -52,6 +51,15 @@ public class RobotContainer {
           .withDriveRequestType(
               SwerveModule.DriveRequestType
                   .OpenLoopVoltage); // Use open-loop control for drive motors
+  private final SwerveRequest.RobotCentric intakeDrive =
+      new SwerveRequest.RobotCentric()
+          .withDeadband(MaxSpeed * 0.2)
+          .withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+          .withDriveRequestType(SwerveModule.DriveRequestType.OpenLoopVoltage);
+  private final SwerveRequest.RobotCentric autoDrive =
+      new SwerveRequest.RobotCentric()
+          .withDriveRequestType(SwerveModule.DriveRequestType.OpenLoopVoltage);
+
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
   private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
   private final Telemetry logger = new Telemetry(MaxSpeed);
@@ -226,43 +234,107 @@ public class RobotContainer {
 
     // Specialized commands
     // auto align with inner cosmic converter and raise pivot
-    controller.leftBumper().toggleOnTrue(pivot.getCosmicConverter(controller.rightTrigger(), true));
+    controller
+        .leftBumper()
+        .toggleOnTrue(
+            pivot
+                .getCosmicConverter(controller.rightTrigger(), true)
+                .alongWith(Commands.run(() -> System.out.println("inner"))));
     // auto align with outer cosmic converter and raise pivot
     controller
         .leftTrigger()
-        .toggleOnTrue(pivot.getCosmicConverter(controller.rightTrigger(), false));
-    // Default drive
-    controller.rightTrigger().toggleOnFalse(pivot.defaults());
+        .toggleOnTrue(
+            Commands.run(() -> pivot.setPivotAngleRot(0.14), pivot)
+                .alongWith(Commands.run(() -> System.out.println("Pivot going")))
+                .withTimeout(1)
+                .andThen(
+                    Commands.run(() -> shooter.shoot(), shooter)
+                        .alongWith(Commands.run(() -> System.out.println("Shooter going")))
+                        // Timeout applied to shooter command only
+                        .alongWith(
+                            Commands.run(() -> intake.intake(), intake)
+                                .alongWith(Commands.run(() -> System.out.println("Intake going")))))
+                .withDeadline(Commands.waitSeconds(5)));
     // Intake
     controller
         .a()
-        .toggleOnTrue(Commands.run(() -> intake.intake()).alongWith(pivot.lowScore(0.31)));
+        .toggleOnTrue(
+            Commands.run(() -> intake.intake())
+                .alongWith(pivot.lowScore(0.31))
+                .alongWith(Commands.run(() -> System.out.println("intake")))
+                .alongWith(
+                    Commands.runOnce(() -> drivetrain.removeDefaultCommand())
+                        .andThen(
+                            Commands.run(
+                                () ->
+                                    drivetrain.setDefaultCommand(
+                                        drivetrain.applyRequest(
+                                            () ->
+                                                intakeDrive
+                                                    .withVelocityX(
+                                                        -controller.getLeftY()
+                                                            * MaxSpeed) // Drive forward with
+                                                    // negative Y
+                                                    // (forward)
+                                                    .withVelocityY(
+                                                        -controller.getLeftX()
+                                                            * MaxSpeed) // Drive left with negative
+                                                    // X
+                                                    .withRotationalRate(
+                                                        -controller.getRightX()
+                                                            * MaxAngularRate))))))); // Drive
+    // counterclockwise with
+    // negative X)
+    // counterclockwise
+    // with negative
+    // X))));
     // Outtake
-    controller.b().toggleOnTrue(Commands.run(() -> intake.outtake()));
+    controller
+        .b()
+        .toggleOnTrue(
+            Commands.run(() -> intake.outtake())
+                .alongWith(Commands.run(() -> System.out.println("outtake"))));
+    controller.povRight().onTrue(Commands.runOnce(() -> zeroPigeon()));
     // Low score
     controller
         .x()
         .toggleOnTrue(
             pivot
-                .lowScore(0.0)
+                .lowScore(0.5)
                 .until(controller.rightTrigger())
-                .andThen(pivot.lowScore(0.0).alongWith(Commands.run(() -> intake.outtake()))));
+                .andThen(
+                    pivot
+                        .lowScore(0.05)
+                        .alongWith(Commands.run(() -> intake.outtake()))
+                        .alongWith(Commands.run(() -> System.out.println("low")))));
+    controller.povDown().toggleOnTrue(Commands.run(() -> pivot.movePivot(0.05), pivot));
   }
 
   public Command getAutonomousCommand() {
-    return new PathPlannerAuto("take 3 high shoot then there");
-
-    //     Commands.run(() -> pivot.setPivotAngleRot(0.14), pivot).alongWith(Commands.run(() ->
-    // System.out.println("Pivot going")))
-    //     .withTimeout(1)
-    //     .andThen(
-    //         Commands.run(() -> shooter.shoot(), shooter)
-    //             .alongWith(Commands.run(() -> System.out.println("Shooter going")))
-    //              // Timeout applied to shooter command only
-    //     .alongWith(
-    //         Commands.run(() -> intake.intake(), intake)
-    //             .alongWith(Commands.run(() -> System.out.println("Intake going")))
-    //             )).withDeadline(Commands.waitSeconds(5));
+    return (Commands.run(() -> pivot.setPivotAngleRot(0.1525), pivot))
+        .withTimeout(2)
+        .andThen(
+            Commands.run(() -> shooter.shoot(), shooter)
+                .alongWith(Commands.run(() -> intake.intake(), intake))).withDeadline(Commands.waitSeconds(10));
+    //        .withDeadline(Commands.waitSeconds(10));
+    //        return Commands.waitSeconds(12).andThen(
+    //                Commands.run(() -> drivetrain.setControl(autoDrive.withVelocityX(1)))
+    //                    .withTimeout(5)
+    //                    .andThen(
+    //                        Commands.run(
+    //                            () ->
+    //                                drivetrain.setControl(
+    //                                    (drive
+    //                                        .withVelocityX(
+    //                                            -controller.getLeftY()
+    //                                                * MaxSpeed) // Drive forward with negative Y
+    //                                        // (forward)
+    //                                        .withVelocityY(
+    //                                            -controller.getLeftX()
+    //                                                * MaxSpeed) // Drive left with negative X
+    //                                        .withRotationalRate(
+    //                                            -controller.getRightX()
+    //                                                * MaxAngularRate)))))); // Drive))));
   }
 
   public static void zeroPigeon() {
