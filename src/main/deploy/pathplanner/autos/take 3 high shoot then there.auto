@@ -5,26 +5,19 @@
     "data": {
       "commands": [
         {
-          "type": "deadline",
+          "type": "named",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "wait 5 seconds"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "high goal shoot"
-                }
-              }
-            ]
+            "name": "high goal shoot"
           }
         },
         {
-          "type": "deadline",
+          "type": "named",
+          "data": {
+            "name": "idle"
+          }
+        },
+        {
+          "type": "parallel",
           "data": {
             "commands": [
               {
@@ -43,28 +36,21 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "idle"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "high shoot flat 2"
           }
         },
         {
-          "type": "deadline",
+          "type": "named",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "wait 5 seconds"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "high goal shoot"
-                }
-              }
-            ]
+            "name": "high goal shoot"
           }
         },
         {
@@ -77,12 +63,6 @@
           "type": "path",
           "data": {
             "pathName": "all the way out 1"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": null
           }
         }
       ]

@@ -135,30 +135,30 @@ public class RobotContainer {
 
     NamedCommands.registerCommand(
         "idle",
-        Commands.runOnce(() -> intake.stopIntake(), intake)
+        Commands.runOnce(() -> intake.stopIntake(), intake).withDeadline(Commands.waitSeconds(5))
             .alongWith(
                 Commands.runOnce(() -> shooter.stopShooter(), shooter)
-                    .alongWith(Commands.runOnce(() -> pivot.pivotDefault(), pivot))));
+                    .alongWith(Commands.runOnce(() -> pivot.pivotDefault(), pivot))).withDeadline(Commands.waitSeconds(5)));
 
     NamedCommands.registerCommand(
         "high goal shoot",
-        Commands.run(() -> pivot.setPivotAngleRot(0.14), pivot).alongWith(Commands.run(() -> System.out.println("Pivot going")))
+        Commands.run(() -> pivot.setPivotAngleRot(0.14), pivot).withDeadline(Commands.waitSeconds(5)).alongWith(Commands.run(() -> System.out.println("Pivot going"))).withDeadline(Commands.waitSeconds(5))
             .withTimeout(1)
             .andThen(
                 Commands.run(() -> shooter.shoot(), shooter)
-                    .alongWith(Commands.run(() -> System.out.println("Shooter going")))
+                    .alongWith(Commands.run(() -> System.out.println("Shooter going"))).withDeadline(Commands.waitSeconds(5))
                      // Timeout applied to shooter command only
             .alongWith(
                 Commands.run(() -> intake.intake(), intake)
                     .alongWith(Commands.run(() -> System.out.println("Intake going")))
-                    )));
+                    )).withDeadline(Commands.waitSeconds(5)));
                     
     NamedCommands.registerCommand(
         "intake",
-        Commands.run(() -> intake.intake(), intake).alongWith(Commands.run((() -> System.out.println("Intake intaking off ground")))
+        Commands.run(() -> intake.intake(), intake).withDeadline(Commands.waitSeconds(5)).alongWith(Commands.run((() -> System.out.println("Intake intaking off ground")))
             .alongWith(
                 Commands.run(() -> shooter.stopShooter(), shooter).alongWith(Commands.run(() -> System.out.println("Shooter stopped")))
-                    .alongWith(Commands.run(() -> pivot.lowScore(0.31), pivot).alongWith(Commands.run(() -> System.out.println("Pivot to intake position")))))));
+                    .alongWith(Commands.run(() -> pivot.lowScore(0.31), pivot).alongWith(Commands.run(() -> System.out.println("Pivot to intake position")))))).withDeadline(Commands.waitSeconds(5)));
 
     // Default commands
     pivot.setDefaultCommand(Commands.run(() -> pivot.pivotDefault(), pivot));
