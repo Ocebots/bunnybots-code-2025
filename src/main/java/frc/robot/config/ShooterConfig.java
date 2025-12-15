@@ -1,7 +1,7 @@
 package frc.robot.config;
 
 public class ShooterConfig {
-  public static final double K_TOP_AND_BOTTOM_SHOOTER_STATOR_CURRENT_LIMIT = 120.0;
+  public static final double K_TOP_AND_BOTTOM_SHOOTER_STATOR_CURRENT_LIMIT = 80.0;
   public static final double K_TOP_AND_BOTTOM_SHOOTER_SUPPLY_CURRENT_LIMIT = 70.0;
 
   public static final double K_TOP_AND_BOTTOM_SHOOTER_MAX_CRUISE_VELOCITY = 3000.0;

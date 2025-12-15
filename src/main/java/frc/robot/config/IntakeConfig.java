@@ -1,8 +1,8 @@
 package frc.robot.config;
 
 public class IntakeConfig {
-  public static final double K_INITIAL_INTAKE_STATOR_CURRENT_LIMIT = 120.0;
-  public static final double K_KICKER_INTAKE_STATOR_CURRENT_LIMIT = 120.0;
+  public static final double K_INITIAL_INTAKE_STATOR_CURRENT_LIMIT = 80.0;
+  public static final double K_KICKER_INTAKE_STATOR_CURRENT_LIMIT = 80.0;
 
   public static final double K_INITIAL_INTAKE_SUPPLY_CURRENT_LIMIT = 70.0;
   public static final double K_KICKER_INTAKE_SUPPLY_CURRENT_LIMIT = 70.0;
