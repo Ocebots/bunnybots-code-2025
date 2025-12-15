@@ -143,14 +143,14 @@ public class RobotContainer {
 
     NamedCommands.registerCommand(
         "idle",
-        Commands.runOnce(() -> intake.stopIntake(), intake)
+        Commands.runOnce(() -> intake.stopIntake(), intake).withDeadline(Commands.waitSeconds(5))
             .alongWith(
                 Commands.runOnce(() -> shooter.stopShooter(), shooter)
-                    .alongWith(Commands.runOnce(() -> pivot.pivotDefault(), pivot))));
+                    .alongWith(Commands.runOnce(() -> pivot.pivotDefault(), pivot))).withDeadline(Commands.waitSeconds(5)));
 
     NamedCommands.registerCommand(
         "high goal shoot",
-        Commands.run(() -> pivot.setPivotAngleRot(0.14), pivot)
+        Commands.run(() -> pivot.setPivotAngleRot(0.14), pivot).withDeadline(Commands.waitSeconds(5))
             .alongWith(Commands.run(() -> System.out.println("Pivot going")))
             .withTimeout(1)
             .andThen(
@@ -159,11 +159,11 @@ public class RobotContainer {
                     // Timeout applied to shooter command only
                     .alongWith(
                         Commands.run(() -> intake.intake(), intake)
-                            .alongWith(Commands.run(() -> System.out.println("Intake going"))))));
+                            .alongWith(Commands.run(() -> System.out.println("Intake going"))))).withDeadline(Commands.waitSeconds(5)));
 
     NamedCommands.registerCommand(
         "intake",
-        Commands.run(() -> intake.intake(), intake)
+        Commands.run(() -> intake.intake(), intake).withDeadline(Commands.waitSeconds(5))
             .alongWith(
                 Commands.run((() -> System.out.println("Intake intaking off ground")))
                     .alongWith(
@@ -175,7 +175,7 @@ public class RobotContainer {
                                         Commands.run(
                                             () ->
                                                 System.out.println(
-                                                    "Pivot to intake position")))))));
+                                                    "Pivot to intake position")))))).withDeadline(Commands.waitSeconds(5)));
 
     // Default commands
     pivot.setDefaultCommand(Commands.run(() -> pivot.pivotDefault(), pivot));

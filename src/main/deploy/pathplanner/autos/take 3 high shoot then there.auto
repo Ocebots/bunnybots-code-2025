@@ -38,19 +38,13 @@
         {
           "type": "named",
           "data": {
-            "name": "idle"
+            "name": "high goal shoot"
           }
         },
         {
           "type": "path",
           "data": {
             "pathName": "high shoot flat 2"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "high goal shoot"
           }
         },
         {
