@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -125,6 +126,11 @@ public class Pivot extends SubsystemBase {
     mPivotRight.stopMotor();
   }
 
+  public void movePivot(double speed) {
+    mPivotLeft.setControl(new DutyCycleOut(speed));
+    mPivotRight.setControl(new DutyCycleOut(-speed));
+  }
+
   public boolean pivotAtSetpoint() {
     return Math.abs(mPivotLeft.getClosedLoopError().getValueAsDouble())
         <= PivotConfig.K_PIVOT_ANGLE_TOLERANCE;
@@ -212,23 +218,25 @@ public class Pivot extends SubsystemBase {
                                       .Pose
                                       .getTranslation()
                                       .getDistance(getCosmicConverterTranslation(false)))
-                              - 0.01)))
+                              + 0.05)))
           .withDeadline(
               Commands.waitUntil(complete)
                   .andThen(
                       Commands.parallel(
-                              Commands.run((() -> intake.runKicker(0.2)))
+                              Commands.run((() -> intake.runKicker(0.2)), intake)
                                   .withTimeout(0.25)
                                   .andThen(
-                                      Commands.run(() -> shooter.shoot())
+                                      Commands.run(() -> shooter.shoot(), shooter)
                                           .withTimeout(1)
                                           .andThen(
-                                              Commands.run(() -> intake.intake())
-                                                  .alongWith(Commands.run(() -> shooter.shoot())))))
+                                              Commands.run(() -> intake.intake(), intake)
+                                                  .alongWith(
+                                                      Commands.run(
+                                                          () -> shooter.shoot(), shooter)))))
                           .until(() -> !complete.getAsBoolean())));
     } else {
       System.out.println("no alliance detected: likely causing many errors");
-      return null;
+      return Commands.none();
     }
   }
 
