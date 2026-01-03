@@ -151,77 +151,70 @@ public class Pivot extends SubsystemBase {
         map.put(Units.inchesToMeters(125.5), 0.13);
         map.put(Units.inchesToMeters(169.5), 0.12);
         map.put(Units.inchesToMeters(210.5), 0.118);
-        if (alliance1.isPresent()) {
-            if (alliance1.get() == DriverStation.Alliance.Blue) {
-                if (isInner) {
-                    cosmicConverter =
-                            new Translation2d(Units.inchesToMeters(4.0), Units.inchesToMeters(196.125));
-                } else {
-                    cosmicConverter =
-                            new Translation2d(Units.inchesToMeters(4.0), Units.inchesToMeters(20.5));
-                }
+        if (alliance1.orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Blue) {
+            if (isInner) {
+                cosmicConverter =
+                        new Translation2d(Units.inchesToMeters(4.0), Units.inchesToMeters(196.125));
+            } else {
+                cosmicConverter =
+                        new Translation2d(Units.inchesToMeters(4.0), Units.inchesToMeters(20.5));
             }
-            if (alliance1.get() == DriverStation.Alliance.Red) {
-                if (isInner) {
-                    cosmicConverter =
-                            new Translation2d(Units.inchesToMeters(644.0), Units.inchesToMeters(196.125));
-                } else {
-                    cosmicConverter =
-                            new Translation2d(Units.inchesToMeters(644.0), Units.inchesToMeters(20.5));
-                }
-            }
-
-            Rotation2d heading = drivetrain.getState().Pose.getRotation();
-
-            // shooter offset in robot frame (meters)
-            double shooterOffsetX = 0.0; // forward
-            double shooterOffsetY = Units.inchesToMeters(-1); // right
-
-            // convert to field frame
-            double shooterX =
-                    drivetrain.getState().Pose.getX()
-                            + shooterOffsetX * heading.getCos()
-                            - shooterOffsetY * heading.getSin();
-
-            double shooterY =
-                    drivetrain.getState().Pose.getY()
-                            + shooterOffsetX * heading.getSin()
-                            + shooterOffsetY * heading.getCos();
-
-            // compute target angle
-            Rotation2d aimAngle =
-                    new Rotation2d(
-                            Math.atan2(
-                                    cosmicConverter.getY() - drivetrain.getState().Pose.getY(),
-                                    cosmicConverter.getX() - drivetrain.getState().Pose.getX()));
-
-            return Commands.run(
-                            () -> drivetrain.setControl(m_faceAngle.withTargetDirection(aimAngle)), drivetrain)
-                    .alongWith(
-                            Commands.runOnce(
-                                    () ->
-                                            setPivotAngleRot(
-                                                    map.get(
-                                                            drivetrain
-                                                                    .getState()
-                                                                    .Pose
-                                                                    .getTranslation()
-                                                                    .getDistance(getCosmicConverterTranslation(false))))))
-                    .withDeadline(
-                            Commands.waitUntil(complete)
-                                    .andThen(
-                                            Commands.parallel(
-                                                            Commands.run((() -> intake.runKicker(-0.7)))
-                                                                    .withTimeout(0.5)
-                                                                    .andThen(
-                                                                            Commands.run(() -> shooter.shoot())
-                                                                                    .alongWith(Commands.run(() -> intake.intake()))))
-                                                    .until(() -> !complete.getAsBoolean())));
         } else {
-            cosmicConverter = null;
-            System.out.println("no alliance detected: likely causing many errors");
-            return null;
+            if (isInner) {
+                cosmicConverter =
+                        new Translation2d(Units.inchesToMeters(644.0), Units.inchesToMeters(196.125));
+            } else {
+                cosmicConverter =
+                        new Translation2d(Units.inchesToMeters(644.0), Units.inchesToMeters(20.5));
+            }
         }
+
+        Rotation2d heading = drivetrain.getState().Pose.getRotation();
+
+        // shooter offset in robot frame (meters)
+        double shooterOffsetX = 0.0; // forward
+        double shooterOffsetY = Units.inchesToMeters(-1); // right
+
+        // convert to field frame
+        double shooterX =
+                drivetrain.getState().Pose.getX()
+                        + shooterOffsetX * heading.getCos()
+                        - shooterOffsetY * heading.getSin();
+
+        double shooterY =
+                drivetrain.getState().Pose.getY()
+                        + shooterOffsetX * heading.getSin()
+                        + shooterOffsetY * heading.getCos();
+
+        // compute target angle
+        Rotation2d aimAngle =
+                new Rotation2d(
+                        Math.atan2(
+                                cosmicConverter.getY() - drivetrain.getState().Pose.getY(),
+                                cosmicConverter.getX() - drivetrain.getState().Pose.getX()));
+
+        return Commands.run(
+                        () -> drivetrain.setControl(m_faceAngle.withTargetDirection(aimAngle)), drivetrain)
+                .alongWith(
+                        Commands.runOnce(
+                                () ->
+                                        setPivotAngleRot(
+                                                map.get(
+                                                        drivetrain
+                                                                .getState()
+                                                                .Pose
+                                                                .getTranslation()
+                                                                .getDistance(getCosmicConverterTranslation(false))))))
+                .withDeadline(
+                        Commands.waitUntil(complete)
+                                .andThen(
+                                        Commands.parallel(
+                                                        Commands.run((() -> intake.runKicker(-0.7)))
+                                                                .withTimeout(0.5)
+                                                                .andThen(
+                                                                        Commands.run(() -> shooter.shoot())
+                                                                                .alongWith(Commands.run(() -> intake.intake()))))
+                                                .until(() -> !complete.getAsBoolean())));
     }
 
     public Translation2d getCosmicConverterTranslation(boolean isInner) {
