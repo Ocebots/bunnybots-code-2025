@@ -4,10 +4,12 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.config.CANMappings;
 import frc.robot.config.IntakeConfig;
 
+@Logged
 public class Intake extends SubsystemBase {
   protected TalonFX mInitialIntake;
   protected TalonFX mKickerIntake;
@@ -68,17 +70,35 @@ public class Intake extends SubsystemBase {
   }
 
   // Velocity is rotations per second of motor accounting for SensorToMechanismRatio
-  public void intake(double velocity) {
-    mInitialIntake.setControl(new DutyCycleOut(velocity));
-    mKickerIntake.setControl(new DutyCycleOut(velocity));
+  public void intake(double initialVelocity, double kickerVelocity) {
+    mInitialIntake.setControl(new DutyCycleOut(initialVelocity));
+    mKickerIntake.setControl(new DutyCycleOut(kickerVelocity));
+  }
+
+  public void intake() {
+    mInitialIntake.setControl(new DutyCycleOut(-0.5));
+    mKickerIntake.setControl(new DutyCycleOut(-1));
+  }
+
+  public void outtake() {
+    mInitialIntake.setControl(new DutyCycleOut(0.5));
+    mKickerIntake.setControl(new DutyCycleOut(0.7));
   }
 
   public void runKicker(double velocity) {
     mKickerIntake.setControl(new DutyCycleOut(velocity));
   }
 
+  public void runKicker() {
+    mKickerIntake.setControl(new DutyCycleOut(-0.7));
+  }
+
   public void runInitial(double velocity) {
     mInitialIntake.setControl(new DutyCycleOut(velocity));
+  }
+
+  public void runInitial() {
+    mInitialIntake.setControl(new DutyCycleOut(-0.5));
   }
 
   public void stopIntake() {

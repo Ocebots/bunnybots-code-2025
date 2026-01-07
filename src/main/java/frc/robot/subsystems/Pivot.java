@@ -1,24 +1,26 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.swerve.SwerveModule;
+import com.ctre.phoenix6.swerve.SwerveRequest;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.config.CANMappings;
 import frc.robot.config.PivotConfig;
-import frc.robot.config.TunerConstants;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
 
 @Logged
 public class Pivot extends SubsystemBase {
@@ -26,15 +28,19 @@ public class Pivot extends SubsystemBase {
   protected TalonFX mPivotRight;
   protected Follower follower;
   protected CommandSwerveDrivetrain drivetrain;
+  protected Shooter shooter;
+  protected Intake intake;
+  private final InterpolatingDoubleTreeMap map = new InterpolatingDoubleTreeMap();
 
   private double currentAngle;
 
-  public Pivot() {
+  public Pivot(CommandSwerveDrivetrain drivetrain, Shooter shooter, Intake intake) {
     mPivotLeft = new TalonFX(CANMappings.K_PIVOT_LEFT_ID);
     mPivotRight = new TalonFX(CANMappings.K_PIVOT_RIGHT_ID);
 
-    drivetrain = TunerConstants.createDrivetrain();
-
+    this.drivetrain = drivetrain;
+    this.shooter = shooter;
+    this.intake = intake;
     TalonFXConfiguration leftPivotConfig = new TalonFXConfiguration();
     TalonFXConfiguration rightPivotConfig = new TalonFXConfiguration();
 
@@ -87,18 +93,27 @@ public class Pivot extends SubsystemBase {
     leftPivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     rightPivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
-    leftPivotConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-    ;
+    // leftPivotConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
     mPivotLeft.getConfigurator().apply(leftPivotConfig);
     mPivotRight.getConfigurator().apply(rightPivotConfig);
 
-    follower = new Follower(CANMappings.K_PIVOT_LEFT_ID, true);
+    // follower = new Follower(CANMappings.K_PIVOT_LEFT_ID, false);
   }
 
   public void setPivotAngle(Rotation2d angleSetpoint) {
     mPivotLeft.setControl(new MotionMagicVoltage(angleSetpoint.getRotations()));
     mPivotRight.setControl(follower);
+  }
+
+  public void setPivotAngleRot(double rotation) {
+    mPivotLeft.setControl(new MotionMagicVoltage(-rotation));
+    mPivotRight.setControl(new MotionMagicVoltage(rotation));
+  }
+
+  public void pivotDefault() {
+    mPivotLeft.setControl(new MotionMagicVoltage(0.0));
+    mPivotRight.setControl(new MotionMagicVoltage(0.0));
   }
 
   public void zeroPivot() {
@@ -111,23 +126,14 @@ public class Pivot extends SubsystemBase {
     mPivotRight.stopMotor();
   }
 
+  public void movePivot(double speed) {
+    mPivotLeft.setControl(new DutyCycleOut(speed));
+    mPivotRight.setControl(new DutyCycleOut(-speed));
+  }
+
   public boolean pivotAtSetpoint() {
     return Math.abs(mPivotLeft.getClosedLoopError().getValueAsDouble())
         <= PivotConfig.K_PIVOT_ANGLE_TOLERANCE;
-  }
-
-  public Rotation2d getHighAngle(Translation2d location) {
-    // location: the cosmic converter we're shooting on - 1 is blue inner, 2 is blue outer, 3 is red
-    // inner, 4 is red outer
-    // want 5-8 calibrations (distance, angle)
-    InterpolatingDoubleTreeMap map = new InterpolatingDoubleTreeMap();
-    map.put(0.0, 0.0);
-
-    double distance =
-        Math.sqrt(
-            Math.pow(location.getX() - drivetrain.getState().Pose.getX(), 2)
-                + Math.pow(location.getY() - drivetrain.getState().Pose.getY(), 2));
-    return Rotation2d.fromDegrees(map.get(distance));
   }
 
   public double getPivotAngleDegrees() {
@@ -137,47 +143,137 @@ public class Pivot extends SubsystemBase {
     return currentAngle;
   }
 
-  public static int getAlliance() {
-    Optional<DriverStation.Alliance> alliance = DriverStation.getAlliance();
+  private final SwerveRequest.FieldCentricFacingAngle m_faceAngle =
+      new SwerveRequest.FieldCentricFacingAngle()
+          .withDriveRequestType(SwerveModule.DriveRequestType.OpenLoopVoltage)
+          .withHeadingPID(6, 0, 0); // Or OpenLoopDutyCycle
 
-    if (alliance.isPresent()) {
-      if (alliance.get() == DriverStation.Alliance.Blue) {
-        return 0;
+  public Command getCosmicConverter(BooleanSupplier complete, boolean isInner) {
+    Optional<DriverStation.Alliance> alliance1 = DriverStation.getAlliance();
+    Translation2d cosmicConverter = new Translation2d();
+    map.put(Units.inchesToMeters(59.0), 0.18);
+    map.put(Units.inchesToMeters(76.5), 0.155);
+    map.put(Units.inchesToMeters(96.5), 0.142);
+    map.put(Units.inchesToMeters(125.5), 0.13);
+    map.put(Units.inchesToMeters(169.5), 0.12);
+    map.put(Units.inchesToMeters(210.5), 0.118);
+    if (alliance1.isPresent()) {
+      if (alliance1.get() == DriverStation.Alliance.Blue) {
+        if (isInner) {
+          cosmicConverter =
+              new Translation2d(Units.inchesToMeters(4.0), Units.inchesToMeters(196.125));
+        } else {
+          cosmicConverter =
+              new Translation2d(Units.inchesToMeters(4.0), Units.inchesToMeters(20.5));
+        }
       }
-      if (alliance.get() == DriverStation.Alliance.Red) {
-        return 1;
+      if (alliance1.get() == DriverStation.Alliance.Red) {
+        if (isInner) {
+          cosmicConverter =
+              new Translation2d(Units.inchesToMeters(644.0), Units.inchesToMeters(196.125));
+        } else {
+          cosmicConverter =
+              new Translation2d(Units.inchesToMeters(644.0), Units.inchesToMeters(20.5));
+        }
       }
+
+      final Translation2d cosmicConverterFinal = cosmicConverter;
+
+      Rotation2d heading = drivetrain.getState().Pose.getRotation();
+
+      // shooter offset in robot frame (meters)
+      double shooterOffsetX = 0.0; // forward
+      double shooterOffsetY = Units.inchesToMeters(-1); // right
+
+      // convert to field frame
+      double shooterX =
+          drivetrain.getState().Pose.getX()
+              + shooterOffsetX * heading.getCos()
+              - shooterOffsetY * heading.getSin();
+
+      double shooterY =
+          drivetrain.getState().Pose.getY()
+              + shooterOffsetX * heading.getSin()
+              + shooterOffsetY * heading.getCos();
+
+      return Commands.run(
+              () ->
+                  drivetrain.setControl(
+                      m_faceAngle.withTargetDirection(
+                          new Rotation2d(
+                              Math.atan2(
+                                      cosmicConverterFinal.getY()
+                                          - drivetrain.getState().Pose.getY(),
+                                      cosmicConverterFinal.getX()
+                                          - drivetrain.getState().Pose.getX())
+                                  + Units.degreesToRadians(-3.0)))),
+              drivetrain)
+          .alongWith(
+              run(
+                  () ->
+                      setPivotAngleRot(
+                          map.get(
+                                  drivetrain
+                                      .getState()
+                                      .Pose
+                                      .getTranslation()
+                                      .getDistance(getCosmicConverterTranslation(false)))
+                              + 0.05)))
+          .withDeadline(
+              Commands.waitUntil(complete)
+                  .andThen(
+                      Commands.parallel(
+                              Commands.run((() -> intake.runKicker(0.2)), intake)
+                                  .withTimeout(0.25)
+                                  .andThen(
+                                      Commands.run(() -> shooter.shoot(), shooter)
+                                          .withTimeout(1)
+                                          .andThen(
+                                              Commands.run(() -> intake.intake(), intake)
+                                                  .alongWith(
+                                                      Commands.run(
+                                                          () -> shooter.shoot(), shooter)))))
+                          .until(() -> !complete.getAsBoolean())));
+    } else {
+      System.out.println("no alliance detected: likely causing many errors");
+      return Commands.none();
     }
-    System.out.println("no alliance detected: likely causing many errors");
-    return -1;
   }
 
-  public static Translation2d getLocation(int innerouter) {
-    // ArrayList values: 0 - blue inner, 1 - blue outer, 2 - red inner, 3 - red outer
-    // innerouter: 0 - outer, 1 - inner
-    // getAlliance(): blue - 0, red - 1
+  public Translation2d getCosmicConverterTranslation(boolean isInner) {
+    Optional<DriverStation.Alliance> alliance1 = DriverStation.getAlliance();
+    Translation2d cosmicConverter = new Translation2d();
+    if (alliance1.isPresent()) {
+      if (alliance1.get() == DriverStation.Alliance.Blue) {
+        if (isInner) {
+          cosmicConverter =
+              new Translation2d(Units.inchesToMeters(4.0), Units.inchesToMeters(196.125));
+        } else {
+          cosmicConverter =
+              new Translation2d(Units.inchesToMeters(4.0), Units.inchesToMeters(20.5));
+        }
+      }
+      if (alliance1.get() == DriverStation.Alliance.Red) {
+        if (isInner) {
+          cosmicConverter =
+              new Translation2d(Units.inchesToMeters(644.0), Units.inchesToMeters(196.125));
+        } else {
+          cosmicConverter =
+              new Translation2d(Units.inchesToMeters(644.0), Units.inchesToMeters(20.5));
+        }
+      }
+    }
+    return cosmicConverter;
+  }
 
-    List<Translation2d> locations =
-        new ArrayList<>(
-            Arrays.asList(
-                new Translation2d(4.0, 196.125),
-                new Translation2d(4.0, 20.5),
-                new Translation2d(644.0, 196.125),
-                new Translation2d(644.0, 20.5))); // same order as explained above
+  public Command defaults() {
+    return Commands.run(
+        () ->
+            drivetrain.setControl(
+                m_faceAngle.withTargetDirection(drivetrain.getState().Pose.getRotation())));
+  }
 
-    if (innerouter == 1 & Pivot.getAlliance() == 0) { // blue inner
-      return locations.get(0);
-    }
-    if (innerouter == 0 & Pivot.getAlliance() == 0) { // blue outer
-      return locations.get(1);
-    }
-    if (innerouter == 1 & Pivot.getAlliance() == 1) { // red inner
-      return locations.get(2);
-    }
-    if (innerouter == 0 & Pivot.getAlliance() == 1) { // red outer
-      return locations.get(3);
-    }
-    System.out.println("error in getLocation in pivot subsystem");
-    return new Translation2d(0.0, 0.0);
+  public Command lowScore(double angle) {
+    return Commands.run(() -> setPivotAngleRot(angle));
   }
 }
